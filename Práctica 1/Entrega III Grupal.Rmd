@@ -1,0 +1,1858 @@
+---
+title: "Entrega II Grupal"
+description: |
+  Entrega Housing Regression
+author:
+  - name: Irving Ramírez Carrillo, Asier Zulaica Mugica, Roberto Bonilla Ibarra
+    url: 
+    affiliation: Universidad Complutense de Madrid
+    affiliation_url: 
+date: "`r Sys.Date()`"
+output:
+    distill::distill_article:
+        highlight: kate
+        colorlinks: true
+        code_folding: false
+        toc: true            
+        toc_depth: 3     
+---
+
+```{r setup, include = FALSE}
+# Ajuste comunes de los chunk
+knitr::opts_chunk$set(fig.width = 8, fig.asp = 1, out.width = "100%",
+                      message = FALSE, warning = FALSE,
+                      echo = TRUE, res = 400)
+```
+
+# Objetivo {#objetivo}
+
+El objetivo de esta entrega es poder predecir el precio de vivienda usando al menos un modelo de regresión univariante (eligiendo la que mejor se considere), un modelo saturado, una regresión con selección de modelos (BIC / AIC o penalizada) y un knn o árbol en modo regresión.
+
+## Paquetes necesarios
+
+Necesitaremos los siguientes paquetes
+
+
+```{r paquetes}
+# Borramos
+rm(list = ls())
+
+# Paquetes
+library(skimr) # resumen numérico
+library(tidymodels) # depuración datos
+library(tidyverse) # modelos
+library(outliers) # outliers
+library(timeDate) # fechas
+library(ggthemes) # tema para graficar
+library(ranger) # Random Forest 
+library(corrr) # Crear correlaciones
+library(Hmisc) # Creación de histogramas
+library(performance) # Creación de gráficas de performance para regresiones lineales.
+library(corrplot) # Crear matriz de correlación
+library(parallel) # Librerías de Cómputo en Paralelo
+library(doParallel) # Librerías de Cómputo en Paralelo
+library("rpart.plot") # Librería para visualizar la lógica dentro del algoritmo de árboles.
+library(vip) # Librería para visualizar la importancia de las variables dentro del algoritmo de árboles.
+library(olsrr) #Librería para realizar contraster de normalidad
+library(car)  # Comprobar la incorrelación de residuos
+```
+
+# Datos {#datos}
+
+Haremos uso de un **dataset de precios de viviendas con distintas variables socioeconómicas.**
+
+```{r}
+viviendas_train <- read_csv(file = "../Data/house_prices_train.csv")
+```
+
+Los datos forman parte de un **registro de diferentes variables relacionadas al precio de vivienda en Ames ,Iowa** elaborado por Dean De Cock.
+
+📚 **Detalle de variables**: <https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/overview>
+
+
+## Análisis exploratorio inicial (numérico)
+
+Antes de tomar ninguna decisión con los datos lo primero que deberíamos hacer es **echar un vistazo numérico** a cómo se comportan las variables. Dado que vamos a clasificar, lo primero que deberíamos observar es como se distribuyen los niveles de nuestra variable objetivo.
+
+### Variables
+
+Lo primero es conocer las variables
+
+```{r}
+glimpse(viviendas_train)
+```
+
+Siendo la definición de cada variable la siguiente:
+
+*	SalePrice - the property's sale price in dollars. This is the target variable that you're trying to predict.
+*	MSSubClass: The building class
+*	MSZoning: The general zoning classification
+*	LotFrontage: Linear feet of street connected to property
+*	LotArea: Lot size in square feet
+*	Street: Type of road access
+*	Alley: Type of alley access
+*	LotShape: General shape of property
+*	LandContour: Flatness of the property
+*	Utilities: Type of utilities available
+*	LotConfig: Lot configuration
+*	LandSlope: Slope of property
+*	Neighborhood: Physical locations within Ames city limits
+*	Condition1: Proximity to main road or railroad
+*	Condition2: Proximity to main road or railroad (if a second is present)
+*	BldgType: Type of dwelling
+*	HouseStyle: Style of dwelling
+*	OverallQual: Overall material and finish quality
+*	OverallCond: Overall condition rating
+*	YearBuilt: Original construction date
+*	YearRemodAdd: Remodel date
+*	RoofStyle: Type of roof
+*	RoofMatl: Roof material
+*	Exterior1st: Exterior covering on house
+*	Exterior2nd: Exterior covering on house (if more than one material)
+*	MasVnrType: Masonry veneer type
+*	MasVnrArea: Masonry veneer area in square feet
+*	ExterQual: Exterior material quality
+*	ExterCond: Present condition of the material on the exterior
+*	Foundation: Type of foundation
+*	BsmtQual: Height of the basement
+*	BsmtCond: General condition of the basement
+*	BsmtExposure: Walkout or garden level basement walls
+*	BsmtFinType1: Quality of basement finished area
+*	BsmtFinSF1: Type 1 finished square feet
+*	BsmtFinType2: Quality of second finished area (if present)
+*	BsmtFinSF2: Type 2 finished square feet
+*	BsmtUnfSF: Unfinished square feet of basement area
+*	TotalBsmtSF: Total square feet of basement area
+*	Heating: Type of heating
+*	HeatingQC: Heating quality and condition
+*	CentralAir: Central air conditioning
+*	Electrical: Electrical system
+*	1stFlrSF: First Floor square feet
+*	2ndFlrSF: Second floor square feet
+*	LowQualFinSF: Low quality finished square feet (all floors)
+*	GrLivArea: Above grade (ground) living area square feet
+*	BsmtFullBath: Basement full bathrooms
+*	BsmtHalfBath: Basement half bathrooms
+*	FullBath: Full bathrooms above grade
+*	HalfBath: Half baths above grade
+*	Bedroom: Number of bedrooms above basement level
+*	Kitchen: Number of kitchens
+*	KitchenQual: Kitchen quality
+*	TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)
+*	Functional: Home functionality rating
+*	Fireplaces: Number of fireplaces
+*	FireplaceQu: Fireplace quality
+*	GarageType: Garage location
+*	GarageYrBlt: Year garage was built
+*	GarageFinish: Interior finish of the garage
+*	GarageCars: Size of garage in car capacity
+*	GarageArea: Size of garage in square feet
+*	GarageQual: Garage quality
+*	GarageCond: Garage condition
+*	PavedDrive: Paved driveway
+*	WoodDeckSF: Wood deck area in square feet
+*	OpenPorchSF: Open porch area in square feet
+*	EnclosedPorch: Enclosed porch area in square feet
+*	3SsnPorch: Three season porch area in square feet
+*	ScreenPorch: Screen porch area in square feet
+*	PoolArea: Pool area in square feet
+*	PoolQC: Pool quality
+*	Fence: Fence quality
+*	MiscFeature: Miscellaneous feature not covered in other categories
+*	MiscVal: $Value of miscellaneous feature
+*	MoSold: Month Sold
+*	YrSold: Year Sold
+*	SaleType: Type of sale
+*	SaleCondition: Condition of sale
+
+`Fuente: ` <https://www.kaggle.com/competitions/house-prices-advanced-regression-techniques/data>
+
+Además con la función `skim()` del paquete `{skimr}` podemos **extraer algunas estadísticas básicas** de nuestros datos.
+
+```{r skim}
+# Resumen numérico
+viviendas_train |> skim()
+```
+
+
+
+Podemos ver que nuestro dataset de entrenamiento cuenta con 1460 columnas, 28 columnas categóricas y 24 numéricas, además podemos apreciar que existen variables como `PoolQc` o `Fence` que son en su mayoría nulas.
+
+
+# Limpieza de datos e imputación de nulos.
+
+En está ocasión antes de proceder a realziar un análisis exploratorio exhaustivo y por la necesidad de entender la correlaión entre nuestras variables, procederemos a limpiar de nulos nuestros datos.
+
+
+**Primero:** Uniremos los datos añadiendo una columna que especifique si los datos son de entrenamiento ó de testing.
+
+```{r}
+viviendas_test <- read_csv(file = "../Data/house_prices_test.csv")
+
+viviendas_test <- viviendas_test |> mutate(source = "test")
+
+viviendas_train <- viviendas_train |> mutate(source = "train")
+
+viviendas <-  viviendas_train |> bind_rows(viviendas_test)
+
+glimpse(viviendas)
+```
+
+**Segundo:** Analicemos los nulos de nuestro dataset completo
+
+```{r}
+# Número de valores nulos
+viviendas_nulos <- viviendas %>%  select(-SalePrice)
+
+null_vals <- sum(is.na(viviendas_nulos))
+
+# Cólumnas con valores nulos
+null_cols <- which(colSums(is.na(viviendas_nulos))>0)
+
+
+sprintf(fmt="Contamos con %d valores nulos y su distribución es la siguiente:\n", null_vals) |>  cat()
+
+for (i in null_cols)
+    {
+    col_name <- names(viviendas_nulos[, i])
+    col_type <- sapply(viviendas_nulos[, i],class)
+    null_val <- sum(is.na(viviendas_nulos[col_name]))
+    null_per <- (null_val / nrow(viviendas_nulos))*100
+    sprintf(fmt = "- %s: %d (%.1f%%)  %s\n ", 
+            col_name, null_val, null_per,col_type) %>% cat()
+}
+
+```
+
+Podemos ver que tenemos nulos en 5 variable numéricas y 13 categóricas.
+
+## Limpieza variables categóricas
+
+
+### Limpieza variables Alley, FireplaceQu, GarageQual, PoolQC, BsmtQual, BsmtCond y Fence
+
+Por la distribución de cada una de estas variables las analizaremos y limpiaremos en la misma sección
+
+```{r}
+# Revisando variable Alley
+viviendas |>   count(Alley, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable FireplaceQu
+viviendas |>   count(FireplaceQu, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable GarageQual
+viviendas |>   count(GarageQual, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable PoolQC
+viviendas |>   count(PoolQC, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable BsmtQual
+viviendas |>   count(BsmtQual, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable BsmtCond
+viviendas |>   count(BsmtCond, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable Fence
+viviendas |>   count(Fence, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+```
+
+Podemos ver que no hace sentido quedarnos con la variable `PoolQC` ya que tiene muchos valores nulos (99%) y contamos con `PoolArea` y por lo tanto pasaremos a eliminarla:
+
+
+```{r}
+viviendas <- viviendas %>% select(-PoolQC)
+```
+
+Podemos ver que estas variables realmente es que no cuentan con las instalaciones que se están evaluando, por lo tanto, en cada uno de ellos añadiremos la categoria "sin":
+
+
+```{r}
+
+viviendas <- viviendas %>% 
+    mutate_at(c('Fence','GarageQual','FireplaceQu','Alley','BsmtQual','BsmtCond'), ~replace_na(.,"sin"))
+
+```
+
+
+
+### Limpieza variable MSZoning
+
+Analicemos la distribución de la variable MSZoning
+
+```{r}
+
+viviendas |>   count(MSZoning, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+```
+
+
+De acuerdo a la documentación, el significado de cada clase es el siguiente:
+
+* A	Agriculture
+* C	Commercial
+* FV	Floating Village Residential
+* I	Industrial
+* RH	Residential High Density
+* RL	Residential Low Density
+* RP	Residential Low Density Park 
+* RM	Residential Medium Density
+       
+Por lo tanto asignaremos los registros en nulo a la categoría con mayor porcentaje.
+
+
+```{r}
+
+viviendas$MSZoning <- viviendas$MSZoning |> replace_na('RL')
+
+```
+
+### Limpieza variables Utilities, Exterior1st, Electrical, KitchenQual, Functional, SaleType
+
+Porque los nulos se encuentran con baja densidad en estas variables, las analizaremos y limpiaremos en conjunto:
+
+```{r}
+# Revisando variable  Utilities
+viviendas |>   count(Utilities, sort = TRUE) |>
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable Exterior1st
+viviendas |>   count(Exterior1st, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable Electrical
+viviendas |>   count(Electrical, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable KitchenQual
+viviendas |>   count(KitchenQual, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable Functional
+viviendas |>   count(Functional, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+# Revisando variable SaleType
+viviendas |>   count(SaleType, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+
+```
+
+Podemos ver que la columna `Utilities` es prácticamente de varianza cero y procederemos a removerla.
+
+```{r}
+ viviendas <- viviendas |> select(-Utilities)
+```
+
+
+Para las demás variables hace sentido asignar la moda ya que son muy pocos registros y no hace sentido crear una nueva categoría.
+
+
+```{r}
+# Función de calcular moda
+calc_mode <- function(x){
+  
+  # Enlistar los distintos valores
+  distinct_values <- unique(x)
+  
+  # Calcular la frecuencia de cada valor único
+  distinct_tabulate <- tabulate(match(x, distinct_values))
+  
+  # Seleccionar la moda
+  distinct_values[which.max(distinct_tabulate)]
+}
+
+# Transformando las columnas categóricas restantes
+viviendas <- viviendas |> mutate(across(where(is.character),~replace_na(.x, calc_mode(.x))))
+```
+
+
+## Limpieza variables numéricas
+
+Analicemos el resumen de las variables numéricas que tienen un valor nulo:
+
+```{r}
+# Selección de variables numéricas con nulos
+null_numeric_cols <- names(which(colSums(is.na(viviendas_nulos |>  select(where(is.numeric))))>0))
+
+# Resumen de variables numéricas con nulos
+viviendas |> select(null_numeric_cols) |> summary()
+```
+
+
+### Variable GarageCars,GarageArea, TotalBsmtSF
+
+Podemos ver que estas 3 variables realmente es porque el dueño de cada casa no cuenta con la variable, es decir, deberían de ser 0.
+
+```{r}
+
+viviendas <- viviendas |> 
+    mutate(across(c(GarageCars,GarageArea, TotalBsmtSF), ~replace_na(.x,0) ))
+```
+
+
+
+### Variable Lot Frontage
+
+Podemos ver que en la variable Lot Frontage tenemos outliers presentes en los datos, sin embargo, analizemos más de fondo.
+
+#### Coeficiente de variación
+
+El coeficiente de variación es la relación entre la desviación típica de una muestra y su media.
+
+${CV} = \frac{{\sigma}{\mu}} 
+
+```{r}
+sd(viviendas$LotFrontage,na.rm=TRUE) / mean(viviendas$LotFrontage,na.rm=TRUE)
+```
+Esto nos dice que existe una dispersión considerable en nuestros datos y será mejor medida imputar por la mediana, sin embargo, podemos darle un valor por el tipo de construcción o por el número de autos.
+
+
+```{r}
+ggplot(viviendas, aes(x = factor(BldgType), y = LotFrontage, color=factor(BldgType))) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
+   labs(title = "Imputación de nulos",
+       subtitle = "Distribución del Lot Frontage por tipo de hogar",
+       x = "Tipo de hogar", y = "Lot Frontage", color= "Tipo de hogar") +
+  theme_economist()
+```
+
+Vemos que el tipo de construcción no tiene relevancia con la variable Lot Frontage.
+
+
+```{r}
+ggplot(viviendas, aes(x = factor(GarageCars), y = LotFrontage, color=factor(GarageCars))) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
+   labs(title = "Imputación de nulos",
+       subtitle = "Distribución del Lot Frontage por número de autos",
+       x = "Número de autos", y = "Lot Frontage", color= "número de autos") +
+  theme_economist()
+```
+
+Vemos que el número de autos marca una tendencia con la variable Lot Frontage, por lo tanto pasaremos a imputar con la mediana de cada grupo
+
+
+
+```{r}
+# Decidimos asignar la mediana a los valores nulos de Lo
+
+viviendas <- viviendas |> group_by(GarageCars) %>% 
+    mutate(across(c(LotFrontage),function(x) { ifelse(is.na(x), median(x, na.rm = TRUE), x) })) %>%  ungroup()
+
+```
+
+### Variable GarageYrBlt
+
+Podemos ver que esta variable además de tener nulos, tenemos errores en los datos como el año `2207`.
+
+Primero imputaremos la variable GarageYrBlt por el año de construcción de la vivienda
+
+```{r}
+viviendas <- viviendas |> 
+   mutate(GarageYrBlt  = coalesce(GarageYrBlt,YearBuilt))
+```
+
+Después veamos en un histograma su distribución:
+
+```{r}
+ggplot(viviendas, aes(x = GarageYrBlt)) + 
+    geom_histogram(bins = 50, color="blue", fill="gold") +
+    labs(title = "Variable GarageYrBlt",
+          x = "GarageYrBlt", 
+         y = "Frecuencia") +
+  theme_economist()
+```
+
+Vemos que solo existe un dato que no hace sentido, el cuál es:
+
+```{r} 
+viviendas %>% slice_max(GarageYrBlt,n=10) %>%  select(GarageYrBlt, YearBuilt)
+
+```
+Una casa que se contruyó en el 2006, por lo tanto le remplazaremos el valor con el año en que se contruyo el lugar
+
+
+```{r} 
+viviendas <- viviendas %>% 
+  mutate(GarageYrBlt = ifelse(GarageYrBlt==2207,YearBuilt, GarageYrBlt))
+```
+
+
+Veamos como se ven las variables imputadas:
+```{r}
+viviendas |> select(null_numeric_cols) |> summary()
+```
+
+
+# Fase 1: Muestreo
+
+Como nuestros datos de entrenamiento son reducidos, no necesitamos hacer alguna muestra de ellos.
+
+# Fase 2: Exploratorio
+
+Antes de poder tomar decisiones en cómo transformar nuestros datos es importante poder hacer un análisis detallado visual de nuestros datos y conocer cómo interactúan con la variable objetivo.
+
+Para esto usaremos el tema del economist.
+
+## Distribución visual variable objetivo
+
+Veamos cómo se distribuye nuesta variable objetivo
+
+```{r}
+ggplot(viviendas, aes(x = SalePrice)) + 
+    geom_histogram(bins = 50) +
+    labs(title = "Variable Objetivo",
+         subtitle = "Precio de venta",
+          x = "Cantidad en dólares ($)", 
+         y = "Frecuencia") +
+  theme_economist()
+
+```
+
+Podemos ver que es unimodal, con sesgo positivo y ciertos outliers que se pueden dislumbrar rápidamente.
+
+## Análisis de variables numéricas
+
+
+```{r}
+hist.data.frame(viviendas |>   select(where(is.numeric)))
+```
+
+Podemos ver que tenemos variables numéricas con Outliers como la variable PoolArea, OpenPorchSF, LotFrontage, LotArea, TotalBsmtSF, 1stFlrSF, 2ndFlrSF y SalePrice.
+
+Además existen variables numéricas que realmente representan una categoría como Fireplaces, GarageCars, FirePlaces, OverallCond, MoSold, BedroomAbvGr, entre otras.
+
+## Análisis de variables categóricas
+
+
+
+```{r}
+
+hist.data.frame(viviendas |>   select(where(is.character)))
+
+```
+
+Podemos ver que existen variables que necesitaremos revisar su distribución ya que son prácticamente constantes como la variable Central Air, Street, LandContour y LandSlope, además de que algunas variables son ordinales como ExterCond, BmstQual, BsmtCond, KitchenQual, HeatinQC, FireplaceQu y GarageQual. 
+
+## Limpieza Outliers
+
+### Correción variables numéricas
+
+Analicemos los estadísticos de las variables: PoolArea, OpenPorchSF, LotFrontage, LotArea, TotalBsmtSF, 1stFlrSF y 2ndFlrSF.
+
+```{r}
+viviendas |>  select(PoolArea,OpenPorchSF,LotFrontage,LotArea,TotalBsmtSF,'1stFlrSF','2ndFlrSF') %>% summary()
+```
+
+Ahora veamos sus coeficientes de variación:
+
+
+```{r}
+
+cv <- function(x) 100*( sd(x)/mean(x))
+
+   viviendas %>%
+   select(PoolArea,OpenPorchSF,LotFrontage,LotArea,TotalBsmtSF,'1stFlrSF','2ndFlrSF')%>%
+     summarise_each(funs( cv))
+```
+
+Podemos ver que la variable Pool Area no hace sentido en su distribución actual por su dispersión tan elevada, como es el caso también de OpenPorch, LotArea y 2ndFlrsF.
+
+
+```{r}
+ggplot(viviendas, aes(x = PoolArea)) + 
+    geom_histogram(bins = 25, color="blue", fill="gold") +
+    labs(title = "Variable PoolArea",
+          x = "PoolArea", 
+         y = "Frecuencia") +
+  theme_economist()
+```
+Y asignando una raíz cuadrada a los valores
+
+```{r}
+ggplot(viviendas, aes(x = sqrt(PoolArea))) + 
+    geom_histogram(bins = 25, color="blue", fill="gold") +
+    labs(title = "Variable PoolArea",
+          x = "PoolArea", 
+         y = "Frecuencia") +
+  theme_economist()
+
+```
+
+Vemos que los valores se han alejado menos entre ellos, pero siguen sumamente alejando, por lo tanto les asignaremos dividiremos en 5 niveles los valores (por sus quantiles), dejando los valores con 0 por fuera y con el mismo valor.
+
+```{r}
+quantile_pool <- viviendas %>%
+    filter(PoolArea > 0) %>%
+    mutate(Poolquantile = cut(PoolArea, breaks = 5, labels = c(1:5))) %>% 
+    select(Id,Poolquantile)
+
+
+viviendas <- viviendas %>%
+    full_join(quantile_pool, by = "Id") %>%
+    mutate(Poolquantile = ifelse (is.na(Poolquantile), 0, Poolquantile))
+
+```
+
+
+```{r}
+hist.data.frame(viviendas |>   select(Poolquantile))
+```
+
+Las variables restantes, al no tener el mismo grado de dispersión, les aplicaremos boxcox directamente en la receta y filtraremos sus atípicos por medio de su z score.
+
+### Correción variables categóricas
+
+#### Street
+
+Veamos la distribución de la variable Street
+
+```{r}
+ggplot(viviendas, aes(x = Street)) + 
+    geom_histogram(stat = "count", color="blue", fill="gold") +
+  stat_count(binwidth = 1, 
+             geom = 'text', 
+             color = 'black', 
+             aes(label = ..count..),
+           position = position_stack(vjust = 0.5)) +
+    labs(title = "Variable Street",
+          x = "Street", 
+         y = "Frecuencia") +
+  theme_economist()
+```
+
+Podemos ver que es menos del 1% por lo tanto procederemos a eliminar esta variable
+
+
+```{r}
+viviendas <- viviendas |> select(-Street) 
+
+```
+
+
+#### Id
+
+Como podemos saber esta variable no importa ninguna información acerca del precio de la casa, por lo tanto, la eliminaremos:
+
+
+```{r}
+viviendas <- viviendas |> select(-Id) 
+
+```
+
+
+## Correlación entre variables
+
+En vez de graficar todas las relaciones entre nuestras variables, entenderemos su correlación entre ellas y la variable objetivo, para así poder determinar qué análisis exploratorio hace sentido.
+
+
+Primero separaremos nuestro dataset train
+
+```{r}
+viviendas_cleaned_train <- viviendas |> filter(source=="train") 
+
+```
+
+Después realizaremos la matriz de correlación
+```{r}
+cor_matrix <- viviendas_cleaned_train |> select(where(is.numeric)) |> cor() |> round(2)
+
+cor_matrix |>
+  corrplot( order = 'AOE', type = 'upper') 
+```
+
+
+Y veamos la variables más correlacionadas:
+
+
+```{r}
+cor_matrix_rm <- viviendas_cleaned_train |> select(where(is.numeric)) |>select(-SalePrice) |>  cor() |> round(2)
+
+cor_matrix_rm[upper.tri(cor_matrix_rm)] <- 0
+diag(cor_matrix_rm) <- 0
+which((!apply(cor_matrix_rm, 1,function(x) any(x > 0.7)))==FALSE)
+
+```
+Podemos ver que hay 4 variables que se encuentran incorreladas
+
+Ahora extraigamos por orden descendiente las correlaciones entre nuestras variables y `SalePrice`:
+
+```{r}
+
+as.data.frame(cor_matrix)  |> select(SalePrice) |> arrange(desc(SalePrice))
+
+```
+
+Podemos ver con claridad que las variables que quitaremos en la receta es 1stFlrSF, TotRmsAbvGrd y GarageYrBlt, ya que existen variables similares a ellas con mayor correlación con la variable objetivo.
+
+Con base a los resultados anteriores nos podemos preguntar lo siguiente:
+
+* **1. ¿Qué relación tiene el número de vehículos con el costo de la propiedad?**
+* **2. ¿Las casas con áreas verdes más grandes tienden a ser más costosas?**
+* **3. ¿Existe una relación directa entre el precio y la Zona?**
+* **4. ¿Las casas con mejores cocinas tienden a ser más costosas?**
+
+### ¿Qué relación tiene el número de vehículos con el costo de la propiedad?
+
+Antes de graficar podemos observar que GarageCars es un factor y por lo tanto es necesario especificarlo en ggplot.
+
+```{r}
+ggplot(viviendas_cleaned_train, aes(x = factor(GarageCars), y = SalePrice, color=factor(GarageCars))) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
+   labs(title = "Pregunta 1",
+       subtitle = "Distribución del precio de venta por número de vehículos en el garage",
+       x = "# Vehículos", y = "Precio de Venta", color= "Vehículos") +
+  theme_economist()
+```
+
+Podemos ver que existe una relación del número de vehículos con el precio de venta, sin embargo, está no se respeta cuando se llega al número de 4 autos.
+
+### ¿Las casas con áreas verdes más grandes tienden a ser más costosas?
+
+
+```{r}
+ggplot(viviendas_cleaned_train, aes(x =GrLivArea , y = SalePrice)) +
+  geom_point(aes( size=GarageArea, color=HeatingQC)) +
+    geom_smooth(method = "lm", se = FALSE, color="gold") +
+  scale_color_brewer(palette="Accent")+
+   labs(title = "Pregunta 2",
+       subtitle = "Distribución del precio de venta vs tamaño del área verde",
+       x = "Área verde", y = "Precio de Venta") +
+  theme_economist()
+```
+
+
+Podemos ver que sí existe una relación directa entre el precio de venta y el área verde de la casa, además vemos que la calidad de la calefacción también es una cualidad de las casas más costosas y el amplio tamaño del Garage.
+
+
+### ¿Existe una relación directa entre el precio y el vecindario?
+
+
+```{r}
+ggplot(viviendas_cleaned_train, aes(x = MSZoning, y = SalePrice, color=MSZoning)) +
+  geom_violin() +
+  stat_summary(fun.y = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
+   labs(title = "Pregunta 3",
+       subtitle = "Distribución del Precio de Venta y Zona",
+       x = "Zona", y = "Precio de Venta", color= "Zona") +
+  theme_economist()
+```
+
+Podemos ver que sí existe una diferenciación de precios por 
+
+### ¿Las casas con mejores cocinas tienden a ser más costosas?
+
+
+```{r}
+ggplot(viviendas_cleaned_train, aes(x = KitchenQual, y = SalePrice, color=KitchenQual)) +
+  geom_boxplot() +
+  stat_summary(fun.y = "mean", geom = "point", shape = 23, size = 3, fill = "white") +
+   labs(title = "Pregunta 4",
+       subtitle = "Distribución del Precio de Venta y el Tipo de Cocina",
+       x = "Tipo de Cocina", y = "Tipo de Cocina", color= "Tipo de Cocina") +
+  theme_economist()
+
+```
+Podemos ver que sí hay una relación entre el tipo de cocina y el costo de la vivienda.
+
+# Fase 3: Modificación (fuera de la receta)
+
+## Factores
+
+Una de las primeras decisiones será dotar a las variables de su **tipología correcta**: debemos decidir si las variables de tipo texto son **variables cualitativas** (factores) o simplemente id's.
+
+```{r}
+viviendas |>
+  select(where(is.character)) |>
+  glimpse()
+```
+
+
+Todas las variables de tipo texto representan **categorías de una cualitativa** así que las convertimos todas ellas a factor (modificación estructural --> fuera de la receta)
+
+```{r}
+
+viviendas <- 
+  viviendas |>
+  mutate(across(where(is.character), as_factor))
+
+```
+
+Y además crearemos una nueva variable que representa el número de baños totales:
+```{r}
+viviendas <-
+  viviendas |>
+  mutate( Baths = (FullBath*2  + HalfBath))
+```
+
+
+Y añadiremos como factor las variables Baths, Fireplaces, GarageCars, Fireplaces, OverallCond, MoSold y BedroomAbvGr.
+
+```{r}
+viviendas <- 
+  viviendas |>
+  mutate(across(c(Baths,Fireplaces,GarageCars,Fireplaces,OverallCond,MoSold,BedroomAbvGr), as_factor))
+```
+
+Ahora veamos todos los factores que están en la tabla.
+
+```{r}
+viviendas |> select(where(is.factor))
+```
+
+### Ordinales
+
+Podemos ver que de nuestros factores, existen algunos con características ordinales.
+
+Transformaremos los factores  GarageQual, FireplaceQu, KitchenQual, HeatingQC, BsmtCond, BsmtQual y ExterCond
+
+Primero veamos su distribución:
+
+```{r}
+# Variable GarageQual
+viviendas |>
+  count(GarageQual) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable FireplaceQu
+viviendas |>
+  count(FireplaceQu) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable KitchenQual
+viviendas |>
+  count(KitchenQual) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable HeatingQC
+viviendas |>
+  count(HeatingQC) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable BsmtCond
+viviendas |>
+  count(BsmtCond) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable BsmtQual
+viviendas |>
+  count(BsmtQual) |> 
+  mutate(porc = 100*n/sum(n))
+
+# Variable ExterCond
+viviendas |>
+  count(ExterCond) |> 
+  mutate(porc = 100*n/sum(n))
+```
+
+
+Ahora les asignaremos un orden a cada categoría con base a lo que nos específica la documentación:
+
+* `Ex	Excellent`
+* `Gd	Good`
+* `TA	Average/Typical`
+* `Fa	Fair`
+* `Po	Poor`
+
+```{r}
+
+viviendas <-
+  viviendas |>
+  mutate(GarageQual = factor(GarageQual, levels = c("sin","Po", "Fa","TA", "Gd", "Ex"),ordered = TRUE),
+         FireplaceQu = factor(FireplaceQu, levels = c("sin","Po", "Fa","TA", "Gd", "Ex"),ordered = TRUE),
+         KitchenQual = factor(KitchenQual, levels = c("Fa","TA", "Gd", "Ex"),ordered = TRUE),
+         HeatingQC = factor(HeatingQC, levels = c("Po", "Fa","TA", "Gd", "Ex"),ordered = TRUE),
+         BsmtCond = factor(BsmtCond, levels = c("sin","Po", "Fa","TA", "Gd"),ordered = TRUE),
+         BsmtQual = factor(BsmtCond, levels = c("sin", "Fa","TA", "Gd", "Ex"),ordered = TRUE),
+         ExterCond = factor(ExterCond, levels = c("Fa","Po","TA", "Gd", "Ex"),ordered = TRUE)
+         )
+knitr::kable(viviendas |> select(GarageQual, FireplaceQu, KitchenQual, HeatingQC, BsmtCond, BsmtQual, ExterCond) |> slice_sample(n=10) )
+```
+
+## Separación Original
+
+Por último separaremos nuestro dataset en Train y Test como originalmente se encontraba.
+
+
+```{r}
+
+viviendas_train <- viviendas |> filter(source=="train") |> select(-source)
+
+
+viviendas_test <- viviendas |> filter(source=="test") |> select(-source)
+
+```
+
+# Fase 3: Modificación (dentro de la receta)
+
+
+### Partición
+
+#### Train - Test Partición
+
+Partiremos nuestros datos en train 85% y test 15%, esto lo usaremos para encontrar los mejores parámetros.
+
+```{r}
+# Partición 10% de test 
+viviendas_split <- initial_split(viviendas_train, prop = 0.85)
+viviendas_split
+```
+
+Fíjate que en `viviendas_split` solo tenemos las instrucciones. Vamos a aplicarlas
+
+```{r}
+# Aplicamos partición
+train_data <- training(viviendas_split)
+test_data <- testing(viviendas_split)
+```
+
+
+#### Validación por Partición 
+
+Está validación la usaremos para los modelos univariantes, modelos saturados y regresiones con selección de modelos.
+```{r}
+# Validación
+validation_data <- validation_split(viviendas_train, prop = 0.7)
+```
+
+
+#### Validación Cruzada
+
+Para los modelos que necesitaremos hiperparametrizar usaremos validación cruzada con repetición.
+
+```{r}
+# Declaramos el número de particiones en las que procederemos a validar.
+cv_folds <-
+ vfold_cv(train_data, 
+          v = 4, 
+          repeats = 1) 
+```
+
+
+### Roles
+
+Tras las particiones, el primer paso es **definir la receta**, indicándole el conjunto donde tenemos validación y train. Después lo que haremos será **asignar posibles roles** que nos puedan diferencias las acciones entre las variables
+
+
+```{r}
+# Receta
+rec_viviendas <-
+  # Fórmula y datos
+  recipe(data = train_data, SalePrice ~ .)|>
+  # Roles
+  add_role(where(is.factor), new_role = "cuali") |> 
+  add_role(where(is.numeric), new_role = "cuanti") |> 
+  add_role(c(FullBath, HalfBath, '1stFlrSF', TotRmsAbvGrd,GarageYrBlt, PoolArea ), new_role = "Drop_Columns") %>% 
+  add_role(c(OpenPorchSF,TotalBsmtSF,'2ndFlrSF',LotFrontage,LotArea ), new_role = "boxcox_var")
+```
+
+
+###Receta Regresión Univariante
+
+Ahora procederemos en crear la receta para la regresión univariante.
+
+```{r}
+# Receta
+rec_reg_viviendas <-
+  # Fórmula y datos
+  recipe(data = train_data, SalePrice ~ GrLivArea) %>% 
+  step_log(GrLivArea, base = 10) %>%
+  # los demás imputamos por la media
+  step_mutate(GrLivArea = ifelse(abs(scores(GrLivArea, type = "z")) > 3, NA, GrLivArea)) %>% 
+  step_impute_mean(GrLivArea)
+rec_reg_viviendas
+```
+
+Probaremos la receta para ver sus resultados:
+
+```{r}
+prepped_data <- 
+  rec_reg_viviendas |>  # use the recipe object
+  prep() |>  # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data)
+```
+
+### Receta Modelo Saturado
+
+Ahora procederemos en crear la receta para la regresión saturada.
+
+```{r}
+# Receta
+rec_reg_saturada <-
+  # Fórmula y datos
+  rec_viviendas |> 
+  step_rm(has_role("Drop_Columns")) |>
+  step_BoxCox(has_role("boxcox_var")) |>
+  step_mutate(across(all_numeric_predictors(), function(x) { ifelse(abs(scores(x,type = "z")) > 2.7 & !is.na(x), NA, x) })) |>
+  step_impute_knn(all_numeric_predictors()) |> 
+  step_impute_mode(has_role("cuali")) |>
+  step_other(has_role("cuali"), threshold = .1, other = "Otros")  |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal(), -all_outcomes())  |> 
+  step_zv(all_predictors()) |> 
+  step_corr(all_numeric_predictors(), threshold = 0.8)
+rec_reg_saturada
+```
+
+Probaremos la receta para ver sus resultados:
+
+```{r}
+prepped_data <- 
+  rec_reg_saturada |>  # use the recipe object
+  prep() |>  # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data)
+```
+
+
+### Receta Regresión con Selección de Modelos BIC
+
+Ahora procederemos en crear la receta para la regresión penalizada usando el modelo Elastic Net.
+
+```{r}
+# Receta
+rec_reg_bic <-
+  # Fórmula y datos
+  rec_viviendas |> 
+  step_rm(has_role("Drop_Columns")) |> 
+  step_BoxCox(has_role("boxcox_var")) |>
+  step_sqrt(SalePrice) |> 
+  step_mutate(across(all_numeric_predictors(), function(x) { ifelse(abs(scores(x,type = "z")) > 2.7 & !is.na(x), NA, x) })) |>
+  step_impute_knn(all_numeric_predictors()) |> 
+  step_impute_mode(has_role("cuali")) |>
+  step_other(has_role("cuali"), threshold = .15, other = "Otros")  |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal(), -all_outcomes())  |> 
+  step_zv(all_predictors()) |> 
+  step_corr(all_numeric_predictors(), threshold = 0.8)
+rec_reg_bic
+```
+
+Probaremos la receta para ver sus resultados:
+
+```{r}
+prepped_data_bic <- 
+  rec_reg_bic |>  # use the recipe object
+  prep() |>  # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data_bic)
+```
+
+
+
+### Receta Regresión Penalizada (Elastic Net)
+
+Ahora procederemos en crear la receta para la regresión penalizada usando el modelo Elastic Net.
+
+```{r}
+# Receta
+rec_reg_elastic <-
+  # Fórmula y datos
+  rec_viviendas |> 
+  step_rm(has_role("Drop_Columns")) |> 
+  step_BoxCox(has_role("boxcox_var")) |>
+  step_sqrt(SalePrice) |> 
+  step_mutate(across(all_numeric_predictors(), function(x) { ifelse(abs(scores(x,type = "z")) > 2.7 & !is.na(x), NA, x) })) |>
+  step_impute_knn(all_numeric_predictors()) |> 
+  step_impute_mode(has_role("cuali")) |>
+  step_other(has_role("cuali"), threshold = .2, other = "Otros")  |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal(), -all_outcomes())  |> 
+  step_zv(all_predictors()) |> 
+  step_corr(all_numeric_predictors(), threshold = 0.8)
+rec_reg_elastic
+```
+
+Probaremos la receta para ver sus resultados:
+
+```{r}
+prepped_data <- 
+  rec_reg_elastic |>  # use the recipe object
+  prep() |>  # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data)
+```
+
+
+
+# Fase 4 Modelling
+
+## Fase 4 Regresión Univariante
+
+### Flujo y Evaluación Regresión Univariante
+
+
+Primero generamos el modelo lineal, el flujo y evaluamos el modelo con los datos de validación.
+
+```{r}
+# Modelo lineal
+reg_lineal <- linear_reg() %>% set_mode("regression") %>% set_engine("lm")
+
+# Flujo de Trabajo
+reg_wflow_viviendas <-
+  workflow() %>% 
+  add_model(reg_lineal) %>% 
+  add_recipe(rec_reg_viviendas)
+
+# Evaluación del modelo a los datos de validación
+reg_fit_viviendas <- 
+  reg_wflow_viviendas %>%
+  fit_resamples(resamples = validation_data)
+
+# Métricas de error
+reg_fit_viviendas |> collect_metrics()
+
+
+```
+Podemos ver que el R cuadrada es de .45 y el RMSE es de 56,918 dólares, esto nos da a simple vista resultados de un modelo muy pobre en rendimiento.
+
+
+### Interpretación de resultados
+
+```{r}
+reg_fit_viviendas <-  reg_wflow_viviendas %>% fit(viviendas_train)
+tidy(reg_fit_viviendas)
+```
+
+La predicción del precio de la vivienda es -1024072 dólares cuando el logaritmo de la variable GrLivArea es 0, y por cada unidad en que el logaritmo base 10 aumenta el precio de la vivienda aumenta 381769 dólares
+
+### Representación de resultados
+
+Hagamos la representación de los resultados:
+
+```{r}
+check_model(reg_fit_viviendas %>% extract_fit_engine())
+```
+
+#### Intervalos de confianza de la estimación
+
+Podemos ver los coeficientes en los que ronda el 95% de probabilidad en que los parámetros sean los adecuados, mas no la población.
+
+
+```{r}
+confint(reg_fit_viviendas %>% extract_fit_engine())
+```
+
+Para esto es importante citar la fuente <https://www.investopedia.com/terms/c/confidenceinterval.asp>
+
+**What Is a Common Misconception About Confidence Intervals?**
+
+The biggest misconception regarding confidence intervals is that they represent the percentage of data from a given sample that falls between the upper and lower bounds. In other words, it would be incorrect to assume that a 99% confidence interval means that 99% of the data in a random sample falls between these bounds. What it actually means is that one can be 99% certain that the range will contain the population mean.
+
+```{r echo = FALSE, results = 'asis'}
+image = "https://www.investopedia.com/thmb/mgpezimLowCvuivu5aBE_dChWDI=/750x0/filters:no_upscale():max_bytes(150000):strip_icc():format(webp)/ConfidenceInterval-387c2dddb10c457e9d6041039b5b6e2c.png"
+cat(paste0('<center><img src="', image,  '"></center>')) 
+```
+
+
+#### Linealidad
+
+Se espera que entre los residuos no exista tendencia significativa, sin embargo, podemos ver que nuestros residuos siguen una tendencia en forma de U, esto puede ser porque le falta información al modelo.
+
+#### ANOVA (Analysis of Variance)
+
+Haciendo un test anova de nuestros predictores vs los residuos, tenemos lo siguientes resultados con respecto a una relación lineal:
+
+```{r}
+ajuste <- reg_fit_viviendas %>% extract_fit_engine()
+lm(ajuste$residuals ~ ajuste$fitted.values) %>% anova()
+```
+
+
+Vemos que el p-valor Pr(>F) de la prueba realizada es bastante grande, por lo que no parece existir tendencia lineal entre los residuos.
+
+
+Ahora lo haremos revisando la tendencia cuadrática.
+```{r}
+lm(ajuste$residuals ~ I(ajuste$fitted.values^2) + ajuste$fitted.values) %>% anova()
+```
+
+Podemos ver que sigue sin existir una tendencia cuadrática
+
+
+#### Homecedasticidad
+
+```{r}
+#Revisar Homecedasticidad
+check_heteroscedasticity(ajuste)
+```
+
+
+Podemos ver que no existe `Homecedasticidad` en los residuos, por lo tanto deberíamos probar a transformar la predictora a raíz cuadrada o logaritmo.
+
+#### Diagnosis de Regresión 
+
+Grafiquemos los residuales
+
+```{r}
+ggplot(
+  tibble("obs" = 1:length(ajuste$residuals),
+         "res" = ajuste$residuals),
+  aes(x = obs, y = res)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Diagnosis de Regresión", subtitle="Modelo Univariante")+
+  theme_economist()
+```
+Podemos ver que no existe una banda de error definida.
+
+
+#### Normalidad de los residuos
+
+Podemos ver que en ninguno de los casos supera el test de normalidad, e incluso la recta en el gráfico QQ Plot no se sigue, por lo tanto, la recomendación es transformar la objetivo tomando raíz cuadrada, logaritmo o transformaciones Box-Cox para variables positivas, o transformaciones Yeo-Johnson para variables que puedan tomar valores negativos.
+
+```{r}
+ols_test_normality(ajuste$residuals)
+```
+
+#### Incorrelación de residuos
+
+```{r}
+
+durbinWatsonTest(ajuste)
+```
+No hay evidencia suficiente para rechazar la hipótesis nula, por lo tanto no podemos asegurar que se encuentran incorrelados.
+
+#### Resumen de evaluación del modelo
+
+```{r}
+glance(reg_fit_viviendas)
+```
+
+#### Predicción
+
+Ahora realizaremos la evaluación y predicción en Test.
+
+```{r}
+# Predecimos en tst
+fit_viviendas <- reg_wflow_viviendas %>% last_fit(split = viviendas_split)
+# Evaluamos en test
+fit_viviendas %>% collect_metrics()
+```
+
+Vemos que las métricas son muy similares al set de validación.
+
+```{r}
+# Errores en test
+pred_test <-
+  fit_viviendas %>%
+  collect_predictions() %>%
+  mutate(error = SalePrice - .pred)
+pred_test
+```
+
+Calculamos el error y graficamos la predicción con el valor real.
+
+
+```{r}
+# Gráficos en test
+ggplot(data = pred_test,
+       mapping = aes(x = .pred,
+                     y = SalePrice)) +
+  geom_point(color = "#006EA1",
+             alpha = 0.6,
+             size = 4) +
+  # Diagonal
+  geom_abline(intercept = 0, slope = 1,
+              color = "orange", size = 1.2) +
+  theme_economist() + 
+  labs(title = "Resultados regresión lineal univariante",
+       subtitle =
+         "Valores deberían estar cercanos a la diagonal",
+       caption =
+         "Autor: Roberto Bonilla| Datos: Ames Housing Dataset",
+       x = "Predicciones",
+       y = "Valores reales")
+```
+
+Podemos ver que los valores están cercanos a la diagonal cuando las casas son de precio medio y bajo, sin embargo, con las casas de precio alto la predicción tiene un error muy alto.
+
+
+## Fase 4 Regresión Saturada
+
+### Flujo y Evaluación Regresión Saturada
+
+
+Primero generamos el modelo lineal, el flujo y evaluamos el modelo con los datos de validación.
+
+```{r}
+# Modelo lineal
+reg_lineal <- linear_reg() %>% set_mode("regression") %>% set_engine("lm")
+
+# Flujo de Trabajo
+reg_wflow_saturada <-
+  workflow() %>% 
+  add_model(reg_lineal) %>% 
+  add_recipe(rec_reg_saturada)
+
+# Evaluación del modelo a los datos de validación
+reg_fit_saturada <- 
+  reg_wflow_saturada %>%
+  fit_resamples(resamples = validation_data)
+
+# Métricas de error
+reg_fit_saturada |> collect_metrics()
+
+
+```
+Podemos ver muchos mejores resultados con el modelo saturado, teniendo un R cuadrada de .829 y un RMSE de 3197 dólares.
+
+
+### Interpretación de resultados
+
+```{r}
+reg_fit_saturada <-  reg_wflow_saturada %>% fit(viviendas_train)
+tidy(reg_fit_saturada)
+```
+
+La predicción del precio de la vivienda es 156945.74223 dólares cuando el eje 'x' se posiciona en 0 y podemos ver los coeficientes que toman cada una de nuestras variables.
+
+### Representación de resultados
+
+Hagamos la representación de los resultados:
+
+```{r}
+check_model(reg_fit_saturada %>% extract_fit_engine())
+```
+Podemos ver que existe colinealidad en nuestras variables y eso puede afectar con ruido en la regresión.
+
+#### Intervalos de confianza de la estimación
+
+Podemos ver los coeficientes en los que ronda el 95% de probabilidad en que los parámetros sean los adecuados, mas no la población.
+
+
+```{r}
+confint(reg_fit_saturada %>% extract_fit_engine())
+```
+
+
+#### Linealidad
+
+Se espera que entre los residuos no exista tendencia significativa, y en el gráfico podemos observar 
+
+#### ANOVA (Analysis of Variance)
+
+Haciendo un test anova de nuestros predictores vs los residuos, tenemos lo siguientes resultados con respecto a una relación lineal:
+
+```{r}
+ajuste <- reg_fit_saturada %>% extract_fit_engine()
+lm(ajuste$residuals ~ ajuste$fitted.values) %>% anova()
+```
+
+
+Vemos que el p-valor Pr(>F) de la prueba realizada es bastante grande, por lo que no parece existir tendencia lineal entre los residuos.
+
+
+Ahora lo haremos revisando la tendencia cuadrática.
+```{r}
+lm(ajuste$residuals ~ I(ajuste$fitted.values^2) + ajuste$fitted.values) %>% anova()
+```
+
+Podemos ver que sigue sin existir una tendencia cuadrática
+
+
+#### Homecedasticidad
+
+```{r}
+#Revisar Homecedasticidad
+check_heteroscedasticity(ajuste)
+```
+
+
+Podemos ver que no existe `Homecedasticidad` en los residuos, por lo tanto deberíamos probar a transformar la predictora a raíz cuadrada o logaritmo.
+
+#### Diagnosis de Regresión 
+
+Grafiquemos los residuales
+
+```{r}
+ggplot(
+  tibble("obs" = 1:length(ajuste$residuals),
+         "res" = ajuste$residuals),
+  aes(x = obs, y = res)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Diagnosis de Regresión", subtitle="Modelo Saturado")+
+  theme_economist()
+```
+Podemos ver que no existe una banda de error definida, sin embargo los residuos parecen seguir una recta en su tendencia (lo cual es adecuado).
+
+#### Normalidad de los residuos
+
+Podemos ver que en ninguno de los casos supera el test de normalidad, e incluso la recta en el gráfico QQ Plot no se sigue, por lo tanto, la recomendación es transformar la objetivo tomando raíz cuadrada, logaritmo o transformaciones Box-Cox para variables positivas, o transformaciones Yeo-Johnson para variables que puedan tomar valores negativos.
+
+```{r}
+ols_test_normality(ajuste$residuals)
+```
+
+#### Incorrelación de residuos
+
+```{r}
+
+durbinWatsonTest(ajuste)
+```
+No hay evidencia suficiente para rechazar la hipótesis nula, por lo tanto no podemos asegurar que se encuentran incorrelados.
+
+#### Resumen de evaluación del modelo
+
+```{r}
+glance(reg_fit_saturada)
+```
+
+#### Predicción
+
+Ahora realizaremos la evaluación y predicción en Test.
+
+```{r}
+# Predecimos en tst
+fit_saturada <- reg_wflow_saturada %>% last_fit(split = viviendas_split)
+# Evaluamos en test
+fit_saturada %>% collect_metrics()
+```
+
+Vemos que las métricas son muy similares al set de validación, e incluso tenemos una reducción en el RMSE.
+
+```{r}
+# Errores en test
+pred_test <-
+  fit_saturada %>%
+  collect_predictions() %>%
+  mutate(error = SalePrice - .pred)
+pred_test
+```
+
+Calculamos el error y graficamos la predicción con el valor real.
+
+
+```{r}
+# Gráficos en test
+ggplot(data = pred_test,
+       mapping = aes(x = .pred,
+                     y = SalePrice)) +
+  geom_point(color = "#006EA1",
+             alpha = 0.6,
+             size = 4) +
+  # Diagonal
+  geom_abline(intercept = 0, slope = 1,
+              color = "orange", size = 1.2) +
+  theme_economist() + 
+  labs(title = "Resultados regresión lineal saturada",
+       subtitle =
+         "Valores deberían estar cercanos a la diagonal",
+       caption =
+         "Autor: Roberto Bonilla| Datos: Ames Housing Dataset",
+       x = "Predicciones",
+       y = "Valores reales")
+```
+
+Podemos ver que los valores están cercanos a la diagonal con mucha más frecuencia, sin embargo, los residuales siguen un poco separados de la recta.
+
+
+## Fase 4 Regresión con Selección de Variables por criterio BIC (Bayesian Information Criterion) 
+
+### Selección Variables
+
+
+Primero generamos el modelo lineal, el flujo y evaluamos el modelo con los datos de validación.
+
+```{r }
+library(MASS)
+
+# Modelo lineal
+bic_prep <- bake(rec_reg_bic %>% prep(), new_data = NULL)
+ajuste_bic_multi <- lm(data = bic_prep, SalePrice ~ .)
+set.seed(100)
+modBIC <- stepAIC(ajuste_bic_multi, k = log(nrow(train_data)))
+
+
+```
+
+Podemos ver que solamente se ha quedado con 20 variables.
+
+
+### Receta Regresión con Selección de Modelos BIC
+
+Ahora procederemos en crear la receta para la regresión penalizada usando el modelo Elastic Net.
+
+```{r}
+# Receta
+rec_reg_bic <-
+  # Fórmula y datos
+  rec_viviendas |> 
+  step_rm(has_role("Drop_Columns")) |> 
+  step_BoxCox(has_role("boxcox_var")) |>
+  step_sqrt(SalePrice) |> 
+  step_mutate(across(all_numeric_predictors(), function(x) { ifelse(abs(scores(x,type = "z")) > 2.7 & !is.na(x), NA, x) })) |>
+  step_impute_knn(all_numeric_predictors()) |> 
+  step_impute_mode(has_role("cuali")) |>
+  step_other(has_role("cuali"), threshold = .15, other = "Otros")  |> 
+  step_normalize(all_numeric_predictors()) |> 
+  step_dummy(all_nominal(), -all_outcomes())  |> 
+  step_zv(all_predictors()) |> 
+  step_corr(all_numeric_predictors(), threshold = 0.8) %>% 
+  step_select(SalePrice , LotFrontage , LotArea , YearBuilt , YearRemodAdd , 
+    TotalBsmtSF , GrLivArea , GarageArea , LandSlope_Otros , 
+    BldgType_Otros , RoofStyle_Hip , HeatingQC_Ex , CentralAir_Otros , 
+    KitchenQual_Gd , KitchenQual_Otros , Functional_Otros , Fireplaces_X1 , 
+    Fireplaces_Otros , GarageCars_Otros , GarageQual_Otros , 
+    Baths_Otros)
+rec_reg_bic
+```
+
+Probaremos la receta para ver sus resultados:
+
+```{r}
+prepped_data_bic <- 
+  rec_reg_bic |>  # use the recipe object
+  prep() |>  # perform the recipe on training data
+  juice() # extract only the preprocessed dataframe 
+
+glimpse(prepped_data_bic)
+```
+
+
+### Flujo y Evaluación Regresión Univariante
+
+
+Primero generamos el modelo lineal, el flujo y evaluamos el modelo con los datos de validación.
+
+```{r}
+
+# Flujo de Trabajo
+reg_wflow_bic <-
+  workflow() %>% 
+  add_model(reg_lineal) %>% 
+  add_recipe(rec_reg_bic)
+
+# Evaluación del modelo a los datos de validación
+reg_fit_bic <- 
+  reg_wflow_bic %>%
+  fit_resamples(resamples = validation_data)
+
+# Métricas de error
+reg_fit_bic |> collect_metrics()
+
+
+```
+Podemos ver que el R cuadrada es de .86 y el RMSE es de 31.3454335 dólares al cuadrado, es decir, 982.956 dólares. Teniendo resultados mucho mejor que el modelo saturado.
+
+### Interpretación de resultados
+
+```{r}
+reg_fit_bic <-  reg_wflow_bic %>% fit(viviendas_train)
+tidy(reg_fit_bic)
+```
+
+La predicción del precio de la vivienda es el cuadrado de 393.119439 dólares cuando el eje 'x' se posiciona en 0 y podemos ver los coeficientes que toman cada una de nuestras variables.
+
+### Representación de resultados
+
+Hagamos la representación de los resultados:
+
+```{r}
+check_model(reg_fit_bic %>% extract_fit_engine())
+```
+
+
+#### Intervalos de confianza de la estimación
+
+Podemos ver los coeficientes en los que ronda el 95% de probabilidad en que los parámetros sean los adecuados, mas no la población.
+
+
+```{r}
+confint(reg_fit_bic %>% extract_fit_engine())
+```
+
+
+#### Linealidad
+
+Se espera que entre los residuos no exista tendencia significativa, y en el gráfico podemos observar 
+
+#### ANOVA (Analysis of Variance)
+
+Haciendo un test anova de nuestros predictores vs los residuos, tenemos lo siguientes resultados con respecto a una relación lineal:
+
+```{r}
+ajuste <- reg_fit_bic %>% extract_fit_engine()
+lm(ajuste$residuals ~ ajuste$fitted.values) %>% anova()
+```
+
+
+Vemos que el p-valor Pr(>F) de la prueba realizada es bastante grande, por lo que no parece existir tendencia lineal entre los residuos.
+
+
+Ahora lo haremos revisando la tendencia cuadrática.
+```{r}
+lm(ajuste$residuals ~ I(ajuste$fitted.values^2) + ajuste$fitted.values) %>% anova()
+```
+
+Podemos ver que sigue sin existir una tendencia cuadrática
+
+
+#### Homecedasticidad
+
+```{r}
+#Revisar Homecedasticidad
+check_heteroscedasticity(ajuste)
+```
+
+
+Podemos ver que no existe `Homecedasticidad` en los residuos.
+
+#### Diagnosis de Regresión 
+
+Grafiquemos los residuales
+
+```{r}
+ggplot(
+  tibble("obs" = 1:length(ajuste$residuals),
+         "res" = ajuste$residuals),
+  aes(x = obs, y = res)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Diagnosis de Regresión", subtitle="Modelo Saturado")+
+  theme_economist()
+```
+
+Vemos que salvo dos hogares nuestros residuos son homocedásticos y existe linealidad entre los residuos.
+
+#### Normalidad de los residuos
+
+Podemos ver que en ninguno de los casos supera el test de normalidad, e incluso la recta en el gráfico QQ Plot no se sigue, por lo tanto, la recomendación es transformar la objetivo tomando raíz cuadrada, logaritmo o transformaciones Box-Cox para variables positivas, o transformaciones Yeo-Johnson para variables que puedan tomar valores negativos.
+
+```{r}
+ols_test_normality(ajuste$residuals)
+```
+
+#### Incorrelación de residuos
+
+```{r}
+durbinWatsonTest(ajuste)
+```
+No hay evidencia suficiente para rechazar la hipótesis nula, por lo tanto no podemos asegurar que se encuentran incorrelados.
+
+#### Resumen de evaluación del modelo
+
+```{r}
+glance(reg_fit_saturada)
+```
+
+#### Predicción
+
+Ahora realizaremos la evaluación y predicción en Test.
+
+```{r}
+# Predecimos en tst
+fit_bic <- reg_wflow_bic %>% last_fit(split = viviendas_split)
+# Evaluamos en test
+fit_bic %>% collect_metrics()
+```
+
+Vemos que las métricas son muy similares al set de validación, e incluso tenemos una reducción en el RMSE.
+
+```{r}
+# Errores en test
+pred_test <-
+  fit_bic %>%
+  collect_predictions() %>%
+  mutate(error = SalePrice - .pred)
+pred_test
+```
+
+Calculamos el error y graficamos la predicción con el valor real.
+
+
+```{r}
+# Gráficos en test
+ggplot(data = pred_test,
+       mapping = aes(x = .pred,
+                     y = SalePrice)) +
+  geom_point(color = "#006EA1",
+             alpha = 0.6,
+             size = 4) +
+  # Diagonal
+  geom_abline(intercept = 0, slope = 1,
+              color = "orange", size = 1.2) +
+  theme_economist() + 
+  labs(title = "Resultados regresión lineal con selección de variables BIC",
+       subtitle =
+         "Valores deberían estar cercanos a la diagonal",
+       caption =
+         "Autor: Roberto Bonilla| Datos: Ames Housing Dataset",
+       x = "Predicciones",
+       y = "Valores reales")
+```
+
+Podemos ver que los valores están cercanos a la diagonal con mucha más frecuencia, y se ven muy juntos a la recta.
+
+
+## Fase 4 Regresión Penalizada (Elastic Net)
+
+### Definición del Modelo
+
+
+Primero generamos el modelo definido por el motor glmnet donde mixture será el parámetro α y penalty el parámetro λ, el flujo y evaluamos el modelo con los datos de validación.
+
+```{r}
+# Modelo lineal
+elastic_net <-
+  linear_reg(mixture = tune("alpha"), penalty = tune("lambda")) %>%
+  set_mode("regression") %>% set_engine("glmnet")
+```
+
+
+### Grid de parámetros
+
+Y vamos a generar un grid de parámetros (200 regresiones) usando penalty() (fíjate que está en escala logarítmica, es decir, que -2 es una penalización de 0.01 y 2 de 100)
+
+```{r}
+grid_elastic_net <-
+  expand_grid("alpha" = seq(0, 1, l = 5),
+              "lambda" = grid_regular(penalty(range = c(-4, 1)), levels = 40) %>%
+                pull(penalty))
+```
+
+
+### Hiperparametrización
+
+```{r}
+set.seed(100)
+wflow_elastic <-
+  workflow() %>% add_recipe(rec_reg_elastic) %>% add_model(elastic_net)
+
+mod_elastic <- wflow_elastic %>%
+  tune_grid(resamples = cv_folds, grid = grid_elastic_net,
+            control = control_grid(verbose = TRUE))
+
+```
+
+### Selección del mejor modelo
+
+```{r}
+# Muestra del mejor modelo en R cuadrada
+mod_elastic %>% show_best("rsq")
+
+# Muestra del mejor modelo en RMSE
+mod_elastic %>% show_best("rmse")
+
+# Selección del mejor modelo en R cuadrada
+mod_elastic %>% select_best("rsq")
+
+# Métricas de error
+mod_elastic |> collect_metrics()
+
+```
+Podemos ver que el R cuadrada es de .8 y el RMSE es de 39.42, que en valor real de la objetivo es el cuadrado de este número siendo 1553 dólares esto nos da mejores resultados que la regresión multivariante y saturada, pero peores resultados que la regresión con selección de variables por medio de penalización usando BIC.
+
+### Gráfica de las métricas en función de los parámetros
+
+```{r}
+mod_elastic %>% autoplot()
+```
+Podemos ver que los mejores resultados se pueden percibir cuando el valor lambda es alto y alpha tiene un valor de .25
+
+### Construcción Modelo Final
+
+```{r}
+set.seed(100)
+elastic_net <-
+  linear_reg(mixture = 0.25, penalty =7.443803) %>%
+  set_mode("regression") %>% set_engine("glmnet")
+wflow_elastic <-
+  workflow() %>% add_recipe(rec_reg_elastic) %>% add_model(elastic_net)
+mod_elastic_fit <-
+  wflow_elastic %>% fit(train_data)
+```
+
+### Coeficientes Modelo FInal
+
+Hagamos la representación del modelo resultante.
+
+```{r}
+tidy(mod_elastic_fit)
+```
+
+Veamos las variables que ha dejado fuera el modelo:
+
+
+```{r}
+coeficientes <- tidy(mod_elastic_fit)
+coeficientes |> filter(estimate==0)
+```
+Podemos ver las 22 variables que se han quedado fuera de acuerdo al modelo elástico.
+
+### Predicción
+
+Ahora realizaremos la evaluación y predicción en Test.
+
+```{r}
+# Predecimos en tst
+fit_elastic <- mod_elastic_fit %>% last_fit(split = viviendas_split)
+# Evaluamos en test
+fit_elastic%>% collect_metrics()
+```
+
+Vemos que las métricas son mucho mejores, siendo mejor modelo que los tres anteriores en R cuadrada, y 100 dólares por debajo en RMSE que el modelo con selección usando el criterio BIC.
+
+```{r}
+# Errores en test
+pred_test <-
+  fit_elastic%>%
+  collect_predictions() %>%
+  mutate(error = SalePrice - .pred)
+pred_test
+```
+
+Calculamos el error y graficamos la predicción con el valor real.
+
+
+```{r}
+# Gráficos en test
+ggplot(data = pred_test,
+       mapping = aes(x = .pred,
+                     y = SalePrice)) +
+  geom_point(color = "#006EA1",
+             alpha = 0.6,
+             size = 4) +
+  theme_economist() + 
+  labs(title = "Resultados regresión elástica",
+       subtitle =
+         "Valores deberían estar cercanos a la diagonal",
+       caption =
+         "Autor: Roberto Bonilla| Datos: Ames Housing Dataset",
+       x = "Predicciones",
+       y = "Valores reales")
+```
+
+
+### Diagnosis de Regresión 
+
+Grafiquemos los residuales
+
+```{r}
+ggplot(
+  tibble("obs" = 1:length(pred_test$error),
+         "res" = pred_test$error),
+  aes(x = obs, y = res)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title="Diagnosis de Regresión", subtitle="Modelo Elástico")+
+  theme_economist()
+```
+Podemos ver que no existe una banda de error definida, sin embargo los residuos parecen seguir una recta en su tendencia (lo cual es adecuado).

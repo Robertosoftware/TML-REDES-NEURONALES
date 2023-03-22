@@ -1,0 +1,667 @@
+<?xml version="1.0" encoding="UTF-8"?><_ROOT_ EMVERSION="14.1" ORIENTATION="HORIZONTAL">
+<Workspace>
+<NODES>
+<NODE CLASS="SASHELP.EMCORE.EXTENSION.CLASS" COMPONENT="FileImport" ID="FIMPORT2" X="80" Y="246" DESCRIPTION="Importar archivo" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="SAMPLE" TOOLPREFIX="FIMPORT">
+<PROPERTIES Location="CATALOG" Catalog="SASHELP.EMSAMP.FIMPORT.SOURCE" ImportType="Local" GuessRows="500" Delimiter=";" NameRow="Y" SkipRows="0" MaxRows="1000000" MaxCols="10000" FileType="csv" Role="TRAIN" ForceRun="N" Summarize="N" AdvancedAdvisor="N" RunAction="Train" Component="FileImport" IFileName="C:\Users\Hp\Documents\UCM\TML\Trabajo\Práctica 1\my_data.csv" AccessTable="NoTableName" UserID="NoUserID" Password="NoPassword">
+<VariableProperties/>
+<EmTargetAttributes/>
+<EmVariableAttributes>
+<DELTA Variable="charges" AttributeName="ROLE" AttributeValue="TARGET"/>
+</EmVariableAttributes>
+<EmFileProperties>
+<USERTRAINCODE Type="EXTERNAL" Extension="sas">
+<Data/>
+</USERTRAINCODE>
+<VARIABLESETDELTA Type="EXTERNAL" Extension="txt">
+<Data><![CDATA[
+if NAME=&quot;charges&quot; then do;
+ROLE=&quot;TARGET&quot;;
+LEVEL=&quot;INTERVAL&quot;;
+ORDER=&quot;&quot;;
+DROP=&quot;N&quot;;
+end;
+]]>
+</Data>
+</VARIABLESETDELTA>
+<DELTACODE Type="EXTERNAL" Extension="txt">
+<Data><![CDATA[
+if NAME=&quot;charges&quot; then do;
+ROLE=&quot;TARGET&quot;;
+LEVEL=&quot;INTERVAL&quot;;
+ORDER=&quot;&quot;;
+end;
+drop DROP;
+]]>
+</Data>
+</DELTACODE>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMCORE.EXTENSION.CLASS" COMPONENT="GraphExplore" ID="GrfExpl" X="237" Y="384" DESCRIPTION="Explorador de gráficos" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="EXPLORE" TOOLPREFIX="GrfExpl">
+<PROPERTIES Location="CATALOG" Catalog="SASHELP.EMEXPL.GRAPHEXPLORE.SOURCE" EmSampleMethod="FIRSTN" EmSampleSize="DEFAULT" EmRandomSeed="12345" Target="Y" GroupByTarget="Y" ForceRun="N" RunAction="Train" Component="GraphExplore" DataSource="SAMPLE" DataNeeded="Y">
+<VariableProperties/>
+<EmVariableAttributes>
+<DELTA Variable="children" AttributeName="LEVEL" AttributeValue="ORDINAL"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties>
+<USERTRAINCODE Type="EXTERNAL" Extension="sas">
+<Data/>
+</USERTRAINCODE>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMASSMT.ASSESS.CLASS" COMPONENT="ModelCompare" ID="MdlComp" X="1029" Y="202" DESCRIPTION="Comparación de modelos" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="ASSESS" TOOLPREFIX="MdlComp">
+<PROPERTIES NumberOfReportedLevels="1E-6" NormalizeReportingVariables="Y" DecileBin="20" LiftEpsilon="1E-6" ProfitEpsilon="1E-6" RoiEpsilon="1E-6" ScoreDistBin="20" RocChart="Y" RocEpsilon="0.01" AssessAllTargetLevels="N" SelectionData="DEFAULT" HPCriteria="DEFAULT" SelectionTable="TRAIN" SelectionCriteria="DEFAULT" SelectionDepth="10" NumberofBins="20" RecomputeAssess="N" TargetName="SQRT_charges" ModelId="Neural5" ModelDescription="Red neuronal sin túneo" ModelCriteria="Valid: Average Squared Error" ForceRun="N" RunAction="Train" Component="ModelCompare" StatisticUsed="_VASE_" TargetLabel="Transformed charges">
+<VariableProperties/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural" X="772" Y="337" DESCRIPTION="Red neuronal sin túneo todas vars" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="3" Prelim="Y" PreliminaryRuns="5" PrelimMaxiter="10" PrelimMaxTime="1 HOUR" Maxiter="50" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="12345" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="0.00001" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmVariableAttributes/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="252.53005368"/>
+<Obs SQRT_CHARGES="106.58819245"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="106.58819245" MAX="252.53005368"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural2" X="795" Y="139" DESCRIPTION="Red neuronal sin túneo" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="3" Prelim="Y" PreliminaryRuns="5" PrelimMaxiter="30" PrelimMaxTime="1 HOUR" Maxiter="250" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="1E-5" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="12345" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="1E-5" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural2_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="252.53005368"/>
+<Obs SQRT_CHARGES="106.58819245"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural2_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="106.58819245" MAX="252.53005368"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural3" X="798" Y="197" DESCRIPTION="Red neuronal con túneo" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="6" Prelim="Y" PreliminaryRuns="5" PrelimMaxiter="30" PrelimMaxTime="1 HOUR" Maxiter="250" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="1E-5" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="12345" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="1E-5" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural3_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="252.53005368"/>
+<Obs SQRT_CHARGES="106.58819245"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural3_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="106.58819245" MAX="252.53005368"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural4" X="797" Y="642" DESCRIPTION="Red neuronal sin túneo todas vars" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="3" Prelim="Y" PreliminaryRuns="5" PrelimMaxiter="10" PrelimMaxTime="1 HOUR" Maxiter="50" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="452" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="0.00001" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural4_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="244.99469172"/>
+<Obs SQRT_CHARGES="104.56940174"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural4_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="104.56940174" MAX="244.99469172"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural5" X="822" Y="455" DESCRIPTION="Red neuronal sin túneo" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="3" Prelim="Y" PreliminaryRuns="5" PrelimMaxiter="30" PrelimMaxTime="1 HOUR" Maxiter="20" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="1E-5" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="234" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="1E-5" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural5_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="244.99469172"/>
+<Obs SQRT_CHARGES="104.56940174"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural5_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="104.56940174" MAX="244.99469172"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.NEURAL.CLASS" COMPONENT="NeuralNetwork" ID="Neural7" X="805" Y="511" DESCRIPTION="Red neuronal con túneo" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Neural">
+<PROPERTIES UseEstimates="N" NetworkArchitecture="MLP" DirectConnection="N" Hidden="6" Prelim="Y" PreliminaryRuns="30" PrelimMaxiter="30" PrelimMaxTime="1 HOUR" Maxiter="30" Maxtime="4 HOURS" TrainingTechnique="DEFAULT" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="1E-5" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTime="1" GConvValue="1E-6" GConvTime="1" ModelSelectionCriterion="PROFIT/LOSS" SuppressOutput="N" Residuals="Y" Standardizations="N" HiddenUnits="N" TrainCode="" PrelimOutest="" Outest="" Outfit="" InitialDs="" CodefileRes="" CodefileNoRes="" AddHidden="Y" HiddenCombFunction="DEFAULT" HiddenActivation="DEFAULT" HiddenBias="Y" TargetCombFunction="DEFAULT" TargetActivation="DEFAULT" TargetError="DEFAULT" TargetBias="Y" InitialSeed="12345" RandDist="NORMAL" RandScale="0.1" RandLoc="0" InputStandardization="STD" WeightDecay="0" Accelerate="1.2" Decelerate="0.5" Learn="0.1" MaxLearn="50" MinLearn="1E-5" Momentum="0" MaxMomentum="1.75" Tilt="0" ForceRun="N" RunAction="Train" Component="NeuralNetwork">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Neural7_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="244.99469172"/>
+<Obs SQRT_CHARGES="104.56940174"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Neural7_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="104.56940174" MAX="244.99469172"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMSAMP.EMDPART.CLASS" COMPONENT="Partition" ID="Part" X="488" Y="181" DESCRIPTION="Partición de datos" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="SAMPLE" TOOLPREFIX="Part">
+<PROPERTIES Method="RANDOM" TrainPct="70" ValidatePct="20" TestPct="10" RandomSeed="678" OutputType="DATA" IntervalDistribution="Y" ClassDistribution="Y" ForceRun="N" RunAction="Train" Component="Partition">
+<VariableProperties/>
+<EmVariableAttributes>
+<DELTA Variable="children" AttributeName="FORMATTYPE" AttributeValue="QUANTITY"/>
+<DELTA Variable="children" AttributeName="FORMAT" AttributeValue="BEST12.0"/>
+<DELTA Variable="children" AttributeName="INFORMAT" AttributeValue="BEST32.0"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMSAMP.EMDPART.CLASS" COMPONENT="Partition" ID="Part2" X="444" Y="398" DESCRIPTION="Partición de datos" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="SAMPLE" TOOLPREFIX="Part">
+<PROPERTIES Method="RANDOM" TrainPct="70" ValidatePct="20" TestPct="10" RandomSeed="234" OutputType="DATA" IntervalDistribution="Y" ClassDistribution="Y" ForceRun="N" RunAction="Train" Component="Partition">
+<VariableProperties/>
+<EmTargetAttributes/>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMEXPL.MULTIPLOT.CLASS" COMPONENT="MultiPlot" ID="Plot" X="229" Y="112" DESCRIPTION="Multi gráfico" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="EXPLORE" TOOLPREFIX="Plot">
+<PROPERTIES OutputCatalog="WORK.GOUT" TrainCode="" NumericThreshold="20" Orientation="VERTICAL" Statistic="FREQ" ShowValues="Y" IncludeMissing="Y" IntervalTargetChart="MEAN" ChartType="SCATTER" IntTargetRegression="LINEAR" DisplayRegEquation="Y" ConfidenceInterval="Y" ImageFormat="GIF" ForceRun="N" RunAction="Train" Component="MultiPlot">
+<VariableProperties/>
+<EmTargetAttributes/>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.REGRESSION.CLASS" COMPONENT="Regression" ID="Reg" X="787" Y="74" DESCRIPTION="Regresión" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Reg">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2" Terms="N" Error="NORMAL" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0" Stop="0" Force="0" Hierarchy="CLASS" Rule="NONE" MaxStep="." StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="." MaxFunctionCalls="." MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTimes="1" GConvValue="1E-6" GConvTimes="1" ClParm="N" Covout="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" ExcludedVariable="REJECT" ForceRun="N" RunAction="Train" Component="Regression" Interactions="">
+<VariableProperties/>
+<EmVariableAttributes>
+<DELTA Variable="children" AttributeName="FORMATTYPE" AttributeValue="QUANTITY"/>
+<DELTA Variable="children" AttributeName="FORMAT" AttributeValue="BEST12.0"/>
+<DELTA Variable="children" AttributeName="INFORMAT" AttributeValue="BEST32.0"/>
+</EmVariableAttributes>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Reg_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="252.53005368"/>
+<Obs SQRT_CHARGES="106.58819245"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Reg_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="106.58819245" MAX="252.53005368"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.REGRESSION.CLASS" COMPONENT="Regression" ID="Reg2" X="768" Y="285" DESCRIPTION="Regresión todas vars" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Reg">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2" Terms="N" Error="NORMAL" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0" Stop="0" Force="0" Hierarchy="CLASS" Rule="NONE" MaxStep="." StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="." MaxFunctionCalls="." MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTimes="1" GConvValue="1E-6" GConvTimes="1" ClParm="N" Covout="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" ExcludedVariable="REJECT" ForceRun="N" RunAction="Train" Component="Regression" Interactions="">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Reg2_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="252.53005368"/>
+<Obs SQRT_CHARGES="106.58819245"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Reg2_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="106.58819245" MAX="252.53005368"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.REGRESSION.CLASS" COMPONENT="Regression" ID="Reg3" X="820" Y="402" DESCRIPTION="Regresión" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Reg">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2" Terms="N" Error="NORMAL" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0" Stop="0" Force="0" Hierarchy="CLASS" Rule="NONE" MaxStep="." StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="." MaxFunctionCalls="." MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTimes="1" GConvValue="1E-6" GConvTimes="1" ClParm="N" Covout="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" ExcludedVariable="REJECT" ForceRun="N" RunAction="Train" Component="Regression" Interactions="">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Reg3_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="244.99469172"/>
+<Obs SQRT_CHARGES="104.56940174"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Reg3_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="104.56940174" MAX="244.99469172"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMODL.REGRESSION.CLASS" COMPONENT="Regression" ID="Reg4" X="793" Y="590" DESCRIPTION="Regresión todas vars" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODEL" TOOLPREFIX="Reg">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2" Terms="N" Error="NORMAL" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0" Stop="0" Force="0" Hierarchy="CLASS" Rule="NONE" MaxStep="." StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="." MaxFunctionCalls="." MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0" AbsFTime="1" AbsGValue="0.00001" AbsGTime="1" AbsXValue="1E-8" AbsXTime="1" FConvValue="0" FConvTimes="1" GConvValue="1E-6" GConvTimes="1" ClParm="N" Covout="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" ExcludedVariable="REJECT" ForceRun="N" RunAction="Train" Component="Regression" Interactions="">
+<VariableProperties/>
+<EmTargetAttributes>
+<SQRT_charges>
+<DecData Table="EMWS6.Reg4_SQRT_charges_DD">
+<Data>
+<Obs SQRT_CHARGES="33.509310646"/>
+<Obs SQRT_CHARGES="244.99469172"/>
+<Obs SQRT_CHARGES="104.56940174"/>
+</Data>
+<Metadata>
+<Variable NAME="SQRT_charges" LABEL="Transformed charges" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS6.Reg4_SQRT_charges_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="TARGET" VARIABLE="SQRT_charges" LABEL="Transformed charges" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="33.509310646" MEAN="104.56940174" MAX="244.99469172"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_SQRT_charges" LABEL="Predicted: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_SQRT_charges" LABEL="Residual: SQRT_charges" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="." MEAN="." MAX="."/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="256" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</SQRT_charges>
+</EmTargetAttributes>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMMDFY.EMTRANS.CLASS" COMPONENT="Transform" ID="Trans" X="262" Y="228" DESCRIPTION="Transformar variables" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="MODIFY" TOOLPREFIX="Trans">
+<PROPERTIES DefaultMethod="NONE" DefaultTargetMethod="NONE" DefaultClassMethod="NONE" DefaultClassTargetMethod="NONE" Offset="1" MinOffset="Y" HideVariable="Y" RejectVariable="Y" GroupCutoff="0.1" GroupMissing="N" EmRandomSeed="12345" EmSampleSize="DEFAULT" EmSampleMethod="FIRSTN" MissingValue="USEINSEARCH" SummaryVariables="TRANSFORMED" SummaryStatistics="Y" UseMetaTransform="Y" MissingAsLevel="N" NumberofBins="VARIABLES" MaxOptimalBins="4" ForceRun="N" RunAction="Train" Component="Transform">
+<VariableProperties/>
+<EmVariableAttributes>
+<DELTA Variable="charges" AttributeName="METHOD" AttributeValue="SQRT"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties>
+<INTERACTION Type="DATA">
+<Data/>
+<Metadata/>
+</INTERACTION>
+<FORMULA Type="DATA">
+<Data/>
+<Metadata/>
+</FORMULA>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMEXPL.VARSELECTION.CLASS" COMPONENT="VariableSelection" ID="Varsel" X="615" Y="138" DESCRIPTION="Selección de variables" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="EXPLORE" TOOLPREFIX="Varsel">
+<PROPERTIES TargetModel="DEFAULT" HideRejectedVars="Y" MaxMissingPercent="50" MaxLevel="100" RejectUnusedInputVars="Y" ByPassVars="NONE" ByPassVarsRole="INPUT" HideUnusedInputVars="Y" UseAov16="N" UseInteractions="N" UseGroups="Y" MinR2="0.005" StopR2="0.0005" MaxRows="3000" Passes="6" ChiSquare="3.84" Bins="50" SASSPDS="Y" PrintOption="DEFAULT" ForceRun="N" RunAction="Train" Component="VariableSelection" VarselLabel="VARSELLABEL" RoleUnusedVars="DEFAULT">
+<VariableProperties/>
+<ManualSelectionVariables/>
+<NameMappings/>
+<EmVariableAttributes>
+<DELTA Variable="children" AttributeName="FORMATTYPE" AttributeValue="QUANTITY"/>
+<DELTA Variable="children" AttributeName="FORMAT" AttributeValue="BEST12.0"/>
+<DELTA Variable="children" AttributeName="INFORMAT" AttributeValue="BEST32.0"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE CLASS="SASHELP.EMEXPL.VARSELECTION.CLASS" COMPONENT="VariableSelection" ID="Varsel2" X="639" Y="417" DESCRIPTION="Selección de variables" DIAGRAMID="_ROOT_" PARENTID="" TOOLTYPE="EXPLORE" TOOLPREFIX="Varsel">
+<PROPERTIES TargetModel="DEFAULT" HideRejectedVars="Y" MaxMissingPercent="50" MaxLevel="100" RejectUnusedInputVars="Y" ByPassVars="NONE" ByPassVarsRole="INPUT" HideUnusedInputVars="Y" UseAov16="N" UseInteractions="N" UseGroups="Y" MinR2="0.005" StopR2="0.0005" MaxRows="3000" Passes="6" ChiSquare="3.84" Bins="50" SASSPDS="Y" PrintOption="DEFAULT" ForceRun="N" RunAction="Train" Component="VariableSelection" VarselLabel="VARSELLABEL" RoleUnusedVars="DEFAULT">
+<VariableProperties/>
+<ManualSelectionVariables/>
+<NameMappings/>
+<EmTargetAttributes/>
+<EmVariableAttributes/>
+<EmFileProperties>
+<EMNOTES Type="EXTERNAL" Extension="txt">
+<Data/>
+</EMNOTES>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="Part" TO="Reg2"/>
+<CONNECTION FROM="Part" TO="Neural"/>
+<CONNECTION FROM="Part" TO="Varsel"/>
+<CONNECTION FROM="Varsel" TO="Neural3"/>
+<CONNECTION FROM="Varsel" TO="Neural2"/>
+<CONNECTION FROM="Varsel" TO="Reg"/>
+<CONNECTION FROM="Neural" TO="MdlComp"/>
+<CONNECTION FROM="Reg2" TO="MdlComp"/>
+<CONNECTION FROM="Reg" TO="MdlComp"/>
+<CONNECTION FROM="Neural2" TO="MdlComp"/>
+<CONNECTION FROM="Neural3" TO="MdlComp"/>
+<CONNECTION FROM="FIMPORT2" TO="GrfExpl"/>
+<CONNECTION FROM="FIMPORT2" TO="Plot"/>
+<CONNECTION FROM="FIMPORT2" TO="Trans"/>
+<CONNECTION FROM="Trans" TO="Part"/>
+<CONNECTION FROM="Part2" TO="Neural4"/>
+<CONNECTION FROM="Part2" TO="Reg4"/>
+<CONNECTION FROM="Part2" TO="Varsel2"/>
+<CONNECTION FROM="Varsel2" TO="Neural7"/>
+<CONNECTION FROM="Varsel2" TO="Neural5"/>
+<CONNECTION FROM="Varsel2" TO="Reg3"/>
+<CONNECTION FROM="Reg4" TO="MdlComp"/>
+<CONNECTION FROM="Neural4" TO="MdlComp"/>
+<CONNECTION FROM="Reg3" TO="MdlComp"/>
+<CONNECTION FROM="Neural5" TO="MdlComp"/>
+<CONNECTION FROM="Neural7" TO="MdlComp"/>
+<CONNECTION FROM="Trans" TO="Part2"/>
+</CONNECTIONS>
+<NOTES>
+<DATA><![CDATA[
+
+]]>
+</DATA>
+</NOTES>
+</Workspace>
+</_ROOT_>

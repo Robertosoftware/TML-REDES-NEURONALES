@@ -1,0 +1,754 @@
+---
+title: "Práctica 1 - Técnicas de Machine Learning"
+author:  "Roberto Bonilla Ibarra"
+    
+date: '`r format(Sys.time(), "%d %B, %Y")`'
+lang: es
+papersize: a4
+fontsize: 12
+urlcolor: "blue"
+linkcolor: "blue"
+header-includes:
+  - \usepackage{float}
+output:
+  pdf_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: no
+    latex_engine: xelatex
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align='center')
+```
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/Logo.png}
+\end{figure}
+
+\newpage
+
+```{=latex}
+\setcounter{tocdepth}{4}
+\tableofcontents
+```
+
+\newpage
+
+# Redes neuronales para regresión
+
+En este trabajo desarrollaremos un trabajo de regresión para predecir el **costo del seguro de gastos médicos** de acuerdo a las siguientes variables.
+
+1. Edad
+2. Peso
+3. IMC
+4. Número de dependientes
+5. Fumador
+6. Región
+
+Este dataset contiene *1338* y se puede encontrar en el siguiente link: https://www.kaggle.com/datasets/mirichoi0218/insurance?datasetId=13720&searchQuery=data+cleaning
+
+# Solución con SAS Enterprise Miner
+
+En este capítulo del trabajo detallaremos el trabajo implementado con el software SAS Enterprise Miner.
+
+## Lectura de datos
+
+El primer paso es leer los datos por medio de la acción de *importar archivo* en el menú *muestreo*.
+
+![Lectura de datos](miner/importar.png)
+
+## Análisis exploratorio
+
+Una vez importado el archivo, procederemos a crear diferentes análisis de la distribución de los datos y su comportamiento.
+\begin{figure}[H]
+\centering
+\includegraphics{miner/charges_freq.png}
+\caption{Distribución variable objetivo}
+\end{figure}
+
+Basándonos en la distribución de la variable objetivo podemos detectar la presencia de datos atípicos.
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/reg_age.png}
+\caption{Gráfico de dispersión y regresión lineal en variable edad}
+\end{figure}
+
+En la figura anterior podemos concluir que existe una relación entre la edad del asegurado y el costo de su seguro médico.
+
+
+## Selección de variables
+
+El proceso de selección de variables en Sas Miner utiliza una regresión de mínimos cuadrados *forward stepwise* que maximiza el valor de R-cuadrado del modelo, este proceso se puede explicar en 3 sencillos pasos:
+
+**Paso 1:** Se ajusta un modelo de regresión lineal utilizando cada variable de entrada individualmente como predictora de la variable objetivo binaria. Se calcula el valor de R-cuadrado correspondiente a cada modelo y se selecciona la variable de entrada que produce el mayor valor de R-cuadrado.
+
+**Paso 2:** Se ajustan modelos de regresión lineal utilizando cada variable de entrada individualmente, junto con la variable de entrada seleccionada en el paso anterior, como predictores de la variable objetivo binaria. Se calcula el valor de R-cuadrado correspondiente a cada modelo y se selecciona la variable de entrada que produce el mayor incremento en el valor de R-cuadrado.
+
+**Paso 3:** Se repite el paso 2 hasta que no se observen mejoras significativas *(threshold)* en el valor de R-cuadrado.
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/r_cuadrado_secuencial.png}
+\caption{Selección de variables por r cuadrado secuencial.}
+\end{figure}
+
+
+En la Figura anterior se puede visualizar las 4 variables seleccionadas por el modelo, siendo *smoker (fumador)* la variable más determinante; es importante añadir que la variable región se descompone en 3 variables más siendo un total de 6 variables.
+
+## Túneo
+
+A continuación se especificará el detalle en el túneo de parámetros.
+
+### Configuración de nodos.
+
+En la selección final de variables contamos con 6 variables independientes, 1338 obs. con 30 obs. por parámetro, usando la siguiente fórmula:
+
+$Número\ de\ parámetros = h(k+1)+h+1$
+
+donde:
+* $h$ es el número de nodos ocultos
+* $k$ es el número de nodos input.
+
+Una red con 6 variables y 5 nodos necesitaría al menos 1,230 obs. y con 6 nodos 1,470 registros.
+
+Al realizar pruebas en el SAS Enterprise Miner, podemos ver que los resultados con 6 nodos son mejores en sus resultados de VMSE (Validation Mean Squared Error) por aproximadamente 25 dólares en comparación de los modelos de 5 nodos, por lo tanto, procederemos con esa selección.
+
+### Configuración de número de iteraciones
+
+Uno de los parámetros más importantes a configurar en una red neuronal es el número de iteraciones, el cual nos permite poder cuidar que la red sobreajuste.
+
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/mse_iteraciones.png}
+\caption{Iteraciones adecuadas en red neuronal}
+\end{figure}
+
+En la imagen anterior podemos observar que el número correcto de iteraciones es 30, ya que a partir de este número el modelo solo comienza a sobreajustar y la disminución del error es nulo.
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/num_iteraciones.png}
+\caption{Cambio en el número de iteraciones en Sas}
+\end{figure}
+
+### Configuración de semillas de inicialización
+
+El uso de diferentes semillas de inicialización en una red neuronal puede ayudar a explorar diferentes regiones del espacio de pesos y a encontrar un mínimo local más óptimo.
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/num_semillas.png}
+\caption{Cambio en el número de semillas de inicialización en Sas}
+\end{figure}
+
+Inicialmente en Sas Enterprise Miner el número predeterminado es 5 diferentes semillas, sin embargo, para este ejercicio usaremos 30 semillas, intentando en todo momento encontrar el mínimo local que reduzca en mayor proporción el error.
+
+
+## Flujo completo de solución
+
+A continuación se presentará el flujo completo de la solución al problema en la predicción del costo del seguro médico de un individuo basado en sus características.
+
+\begin{figure}[H]
+\centering
+\includegraphics{miner/Flujocompleto.png}
+\caption{Flujo completo de solución}
+\end{figure}
+
+### Transformación variable dependiente
+
+Se ha transformado la variable dependiente usando su raíz cuadrada, intentando disminuir la influencia de los datos atípicos en la distribución de la variable dependiente.
+
+### Configuración de semilla aleatoria.
+
+Se ha cambiado la semilla en la separación del set de datos y en la semilla inicial del algoritmo de redes neuronales, generando así diferentes resultados de algoritmos con los mismos parámetros lo cuál nos puede ayudar a elegir el modelo óptimo.
+
+## Resultados
+
+La siguiente tabla representa los resultados obtenidos:  
+
+|                | Red neuronal con tuneo | Red neuronal sin tuneo | Red neuronal todas vars. | Regresión todas vars. | Regresión con selección vars. |
+|----------------|------------------------|------------------------|--------------------------|-----------------------|-------------------------------|
+| Media  MSE         | 352.07              | 345.62             | 353.74               | 539.58            | 456.33                    |
+| Desv. Estándar MSE | 2.65             | 12.90             | 14.12               | 13.70            | 1.44    |
+
+Se ha seleccionado la medición del error por MSE, ya que la variable dependiente se encuentra transformada con su raíz cuadrada, haciendo que esta medida sea el fiel reflejo a los dólares de error en los distintos modelos.
+
+Podemos observar que la red con tuneo cuenta con la mejor varianza entre las redes neuronales, sin embargo, el sesgo no es el mejor entre las redes neuronales, esto es debido a que en SAS Enterprise Miner no cuenta con un método repetitivo y con validación cruzada para poder seleccionar los mejores parámetros de la red neuronal. 
+
+\newpage
+# Solución con R
+
+A continuación se especificará la solución hecha con el lenguaje de programación R.
+
+## Paquetes necesarios
+
+Necesitaremos los siguientes paquetes
+
+
+```{r paquetes}
+# Borramos
+rm(list = ls())
+
+# Paquetes
+shhh <- suppressPackageStartupMessages 
+shhh(library(skimr)) # resumen numérico
+shhh(library(dplyr)) # depuración datos
+shhh(library(tidyverse)) # depuración datos
+shhh(library(ggthemes)) # tema para graficar
+shhh(library(corrplot)) # tema para graficar matriz de correlaciones
+shhh(library(fastDummies)) # Creación de Dummies
+shhh(library(corrr)) # Crear correlaciones
+shhh(library(Hmisc)) # Creación de histogramas
+shhh(library(parallel)) # Librerías de Cómputo en Paralelo
+shhh(library(doParallel)) # Librerías de Cómputo en Paralelo
+```
+
+## Análisis exploratorio de datos.
+
+Primero comenzaremos explorando los estadísticos básicos del set de datos y su distribución:
+
+
+```{r}
+insurance<- read_csv("C:\\Users\\Hp\\Documents\\UCM\\TML\\Trabajo\\Práctica 1\\insurance.csv",show_col_types = FALSE)
+insurance
+```
+
+Usando la función `skim()`
+
+```{r}
+insurance |> skim()
+```
+
+
+Podemos ver que en nuestro set de datos cibtanis con una variable objetivo denominado *charges*, tres variables numéricas y 3 variables categóricas.
+
+Ahora veamos la distribución de las variables categóricas:
+
+```{r}
+# Revisando variable sex
+insurance |>   count(sex, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+```
+
+Podemos ver que la variable sexo se encuentra balanceada entre femenino y masculino.
+
+```{r}
+# Revisando variable smoker
+insurance |>   count(smoker, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+```
+
+Podemos ver que la mayor parte de las personas aseguradas no son fumadores.
+
+```{r}
+# Revisando variable region
+insurance |>   count(region, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+```
+
+Podemos ver que la variable región prácticamente se encuentra balanceada, sin necesidad de alguna agrupación en sus clases.
+
+Ahora veamos la distribución de las variables numéricas:
+
+```{r}
+hist.data.frame(insurance %>% dplyr::select(where(is.numeric)))
+```
+Podemos ver que en la variable objetivo existe un sesgo hacia la derecha por la presencia de datos atípicos, las otras variables parecen tener un comportamiento normal.
+
+También procederemos a transformar la edad a *buckets* de 10 años.
+
+```{r}
+insurance <- insurance %>%
+  mutate(age_bucket = cut(age, breaks = seq(15, 65, by = 10),
+      labels = gsub(" ", "", paste(seq(15, 55, by = 10),
+               "_", seq(25, 65, by = 10))), include.lowest = TRUE))
+```
+
+Ahora analizemos su distribución:
+
+```{r}
+# Revisando variable region
+insurance |>   count(age_bucket, sort = TRUE) |> 
+  mutate(porc = 100*n/sum(n), cumsum(porc))
+```
+
+Podemos ver que la muestra cuenta con edades bastante balanceadas, siendo el menor grupo el de la gente mayor.
+
+### Visualización de datos
+
+Procederemos a analizar el factor de los fumadores y las regiones donde viven en el costo del seguro de gastos médicos:
+
+```{r}
+ggplot(insurance, aes(x = factor(region), y = charges, color=factor(smoker))) +
+  geom_boxplot() +
+   labs(title = "Distribución de variable objetivo",
+       subtitle = "Costo médico por zona y variable fumador",
+       x = "Zona", y = "Costo del Seguro Médico", color= "Fumador") +
+  theme_economist()
+
+```
+Podemos ver que la zona realmente no es significativa en comparación de la variable que nos permite identificar si el asegurado es o no fumador.
+
+Ahora analizemos el impacto de la edad del asegurado y el sexo con respecto al costo del seguro.
+```{r}
+ggplot(insurance, aes(x = factor(age_bucket), y = charges,color=factor(sex))) +
+  geom_boxplot() +
+   labs(title = "Distribución de variable objetivo",
+       subtitle = "Costo médico por edad y sexo",
+       x = "Rango de edad", y = "Costo del Seguro Médico", color= "Sexo") +
+  theme_economist()
+```
+
+Podemos ver que existe un incremento de costo paulatino conforme cada rango de edades y que el sexo masculino tiende a tener costos mayores.
+
+Ahora procederemos a medir el impacto del Índice de Masa Corporal, recordando lo siguiente:
+
+* Si el IMC es menor a 18.4, el rango se denomina como peso insuficiente.
+* Si el IMC se encuentra entre 18.5 y  24.9, se encuentra dentro del rango de peso normal.
+* Si el IMC es entre 25.0 y 29.9, se encuentra dentro del rango de sobrepeso.
+* Si el IMC es mayor o igual a 30 se considera obesidad.
+
+```{r}
+ggplot(insurance, aes(x = bmi, y = charges)) +
+  geom_point(aes(color=children))+
+  geom_smooth(formula = y ~ x, method = "lm")+
+   labs(title = "Distribución de variable objetivo",
+       subtitle = "Costo médico por IMC e hijos",
+       x = "IMC", y = "Costo del Seguro Médico", color= "Número de Hijos") +
+  theme_economist()
+```
+Podemos ver entre más alto sea el IMC, mayor es el costo del seguro médico.
+
+Por último procederemos con la matriz de correlación:
+
+```{r}
+cor_matrix <- insurance |> dplyr::select(where(is.numeric)) |> cor() |> round(2)
+
+cor_matrix |>
+  corrplot.mixed( lower = 'shade', upper = 'pie', order = 'hclust')
+
+```
+Donde la edad es la variable numérica más relacionada con el costo del seguro médico.
+
+## Depuración de datos
+
+Antes de proceder con la transformación de variables es importante analizar con más profundidad la variable objetivo.
+
+El primer paso vamos a crear el Zscore de la variable charges y filtrar los registros que se encuentren con valores mayores a 3:
+
+```{r}
+insurance %>% mutate(zscore = (charges - mean(charges))/sd(charges)) %>% filter(zscore>3)
+```
+
+Podemos ver que tenemos 7 registros con cargos excesivos de seguro de gastos médicos. Para corregir este fenómeno procederemos a aplicar la raíz cuadrada de la variable:
+
+```{r}
+insurance <- insurance %>% mutate(charges_sqr = sqrt(charges))
+```
+
+Y procederemos a volver a revisar el Z-score de la variable:
+
+```{r}
+insurance %>%  
+  mutate(zscore = (charges_sqr -
+mean(charges_sqr))/ sd(charges_sqr))%>% 
+  filter(zscore>3)
+```
+Podemos ver que todavía existen dos registros, sin embargo, se encuentran muy cerca de 3 unidades, por lo tanto, podemos estar seguros que la variable ha sido corregida.
+
+
+## Codificación y normalizació de variables
+
+En este apartado del trabajo procederemos a dummyficar las variables categóricas, cuidando la multicolinealidad de las variables (removiendo la primer columna que se genera) con la librería *fastDummies*.
+
+```{r}
+dummyfied_data <- 
+  fastDummies::dummy_cols(
+    insurance, remove_first_dummy = TRUE, 
+    select_columns = c( "sex", "smoker", "region", "age_bucket"))
+```
+
+Una vez transformado el set de datos, procederemos a reducir las variables a las que serán usadas en los procesos siguientes:
+
+```{r}
+model_data <- 
+  dummyfied_data %>% 
+  dplyr::select(-c("sex", "smoker","region", 
+                   "age", "charges", "age_bucket"))
+```
+
+Una vez que se encuentren dummyficadas las variables, procederemos a normalizarlas:
+
+```{r}
+model_data  <- model_data  %>%
+  dplyr::mutate(across(c(bmi, children), ~ (. - mean(.)) / sd(.)))
+```
+## Selección de variables
+
+Primero procederemos identificando las variables dependientes e independientes:
+
+```{r}
+dput(names(model_data))
+
+variable_dep = c("charges_sqr")
+variable_indepe = c("bmi", "children", "sex_male", "smoker_yes", 
+"region_northwest", "region_southeast", "region_southwest", "age_bucket_25_35", 
+"age_bucket_35_45", "age_bucket_45_55", "age_bucket_55_65")
+```
+
+Usaremos el cómputo en paralelo del computador:
+
+```{r}
+GS_T0 <- Sys.time()
+cluster <- makeCluster(detectCores() - 1) # number of cores
+registerDoParallel(cluster) # register the parallel processing
+
+```
+
+Cargaremos el archivo de R especializado en selección de variables con step repetido y el archivo que nos permite realizar avnnet:
+
+
+```{r}
+source("cruzadas avnnet y lin.R")
+source("funcion steprepetido.R")
+shhh(library(MASS)) # Librería para el step AIC y BIC
+shhh(library(MXM)) # Librería para selección de variables con modelo Wrapper.
+shhh(library(Boruta)) # Librería para selección de variables con modelo Wrapper.
+shhh(library(caret)) # Librería de Machine Learning en R
+```
+
+
+```{r include = FALSE}
+#En caso de querer empezar
+#save(model_data,file="insurance_model.Rda")
+#load("insurance_model.Rda")
+```
+
+Procederemos a seleccionar las variables más importantes usando el criterio AIC.
+
+```{r eval = FALSE}
+lista<-steprepetido(data=model_data,vardep=variable_dep,
+                    listconti=variable_indepe,
+                    sinicio=12345,sfinal=12385,porcen=0.8,criterio="AIC")
+
+tabla<-lista[[1]]
+dput(lista[[2]][[1]])
+
+# Podemos ver que las variables seleccionadas por el Step repetido AIC son:
+var_AIC <- c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "age_bucket_35_45", 
+"bmi", "children", "age_bucket_25_35", "region_southeast", "region_southwest"
+)
+```
+
+Ahora procederemos usando el criterio BIC:
+
+```{r eval=FALSE}
+lista<-steprepetido(data=model_data,vardep=variable_dep,
+                    listconti=variable_indepe,
+                    sinicio=12345,sfinal=12385,porcen=0.8,criterio="BIC")
+
+tabla<-lista[[1]]
+dput(lista[[2]][[1]])
+
+# Podemos ver que las variables seleccionadas por el Step repetido BIC son:
+var_BIC <- 
+c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "age_bucket_35_45", 
+"bmi", "children", "age_bucket_25_35", "region_southeast")
+
+```
+
+Ahora procederemos con el Wrapper Boruta:
+
+```{r eval=FALSE}
+out.boruta <- Boruta(charges_sqr~., data = model_data)
+
+print(out.boruta)
+
+summary(out.boruta)
+
+sal<-data.frame(out.boruta$finalDecision)
+
+sal2<-sal[which(sal$out.boruta.finalDecision=="Confirmed"),,drop=FALSE]
+
+dput(row.names(sal2))
+
+length(dput(row.names(sal2)))
+
+var_boruta <- c("bmi", "children", "smoker_yes", "age_bucket_25_35", "age_bucket_35_45", 
+"age_bucket_45_55", "age_bucket_55_65")
+
+```
+
+Ahora procederemos con el Wrapper MXM:
+
+```{r eval=FALSE}
+
+targetVariable <-as.vector( model_data$charges_sqr)
+str(targetVariable,2)
+
+model_data_matrix <- as.matrix(model_data[ ,!(colnames(model_data) == "charges_sqr")])
+  model_data
+dim(model_data_matrix)
+
+mmpc1 <- MMPC( target  = targetVariable, 
+               dataset = model_data_matrix, 
+               max_k = 3, hash = TRUE, test = "testIndFisher")
+
+mmpc1@selectedVars
+
+a<-dput(names(model_data[ ,!(colnames(model_data) == 
+              "charges_sqr")][,c(mmpc1@selectedVars)]))
+length(a)
+a
+
+var_MXM <- c("bmi", "children", "smoker_yes", "age_bucket_45_55", "age_bucket_55_65")
+```
+
+Y por último utilizaremos el Wrapper RFE:
+
+```{r eval=FALSE}
+y<-model_data[,variable_dep]
+x<-model_data[,variable_indepe]
+
+
+control <- rfeControl(functions=rfFuncs, method="cv", number=10)
+# run the RFE algorithm
+results <- rfe(x, model_data[[3]], sizes=c(1:8), rfeControl=control)
+
+selecrfe<-results$optVariables
+length(selecrfe)
+dput(selecrfe)
+
+var_RFE <-c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "bmi", 
+"age_bucket_35_45", "children", "region_southwest", 
+"region_southeast")
+
+```
+
+Veamos las variables seleccionadas por cada algoritmo:
+
+```{r}
+var_AIC <- c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "age_bucket_35_45", 
+"bmi", "children", "age_bucket_25_35", "region_southeast", "region_southwest"
+)
+length(var_AIC)
+
+var_BIC <- 
+c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "age_bucket_35_45", 
+"bmi", "children", "age_bucket_25_35", "region_southeast")
+length(var_BIC)
+
+var_boruta <- c("bmi", "children", "smoker_yes", "age_bucket_25_35", "age_bucket_35_45", 
+"age_bucket_45_55", "age_bucket_55_65")
+length(var_boruta)
+
+var_MXM <- c("bmi", "children", "smoker_yes", "age_bucket_45_55", "age_bucket_55_65")
+length(var_MXM)
+
+var_RFE <-c("smoker_yes", "age_bucket_55_65", "age_bucket_45_55", "bmi", 
+"age_bucket_35_45", "children", "region_southwest", 
+"region_southeast")
+length(var_RFE)
+
+```
+
+Una vez seleccionadas las variables de cada modelo, procederemos a evaluarlas con una regresión lineal y el uso de validación cruzada repetida:
+
+```{r}
+medias1<-cruzadalin(data=model_data, 
+                    vardep="charges_sqr", listconti=var_AIC,
+                    listclass=c(""), grupos=4, 
+                    sinicio=1234, repe=25)
+
+medias1$modelo="STEPAIC_9"
+
+medias2<-cruzadalin(data=model_data,
+                    vardep="charges_sqr",listconti=var_BIC,
+                    listclass=c(""), grupos=4, 
+                    sinicio=1234, repe=25)
+
+medias2$modelo="STEPBIC_8"
+
+medias3<-cruzadalin(data=model_data, 
+                    vardep="charges_sqr", listconti=var_boruta,
+                    listclass=c(""), grupos=4,
+                    sinicio=1234, repe=25)
+
+medias3$modelo="Boruta_7"
+
+medias4<-cruzadalin(data=model_data, 
+                    vardep="charges_sqr", listconti=var_MXM,
+                    listclass=c(""), grupos=4, 
+                    sinicio=1234, repe=25)
+
+medias4$modelo="MXM_5"
+
+medias5<-cruzadalin(data=model_data, 
+                    vardep="charges_sqr", listconti=var_RFE,
+                    listclass=c(""), grupos=4, 
+                    sinicio=1234, repe=25)
+
+medias5$modelo="RFE_8"
+
+union1<-rbind(medias1, medias2, medias3, medias4, medias5)
+
+ggplot(union1, aes(x = modelo, y = error)) +
+  geom_boxplot() +
+  xlab("Modelos") +
+  ylab("MSE") +
+  ggtitle("Resultados Modelos")+
+  theme_economist(base_size = 12, base_family = "sans") +
+  theme(axis.text.x = element_text(size = 8))
+
+```
+Con base a los resultados anteriores podemos decidir que las 7 variables del Wrapper Boruta son las más adecuadas para construir el modelo ya que sú MSE el cuál prácticamente es su error original (ya que la variable dependiente se encuentra transformada con su raíz cuadrada) es uno de los más bajos, con una varianza baja y con el menor número de variables, lo cuál nos ayuda a combatir el sobre ajuste.
+
+## Construcción red neuronal
+
+Una vez elegidas las variables que participarán en la construcción del modelo, procederemos a encontrar los mejores parámetros de la red neuronal, primero sin early stopping.
+
+
+### Calculo de nodos.
+
+7 variables, 1338 obs, con 30 obs. por parámetro, usando la siguiente fórmula:
+
+$Número\ de\ parámetros = h(k+1)+h+1$
+
+donde:
+* $h$ es el número de nodos ocultos
+* $k$ es el número de nodos input.
+
+Una red con 7 variables independientes y 4 nodos ocultos necesitaría al menos 1,110 obs. y con 5 nodos ocultos 1,440 registros.
+
+### Tuneo de parámetros
+
+Una red neuronal cuenta con 3 básicos parámetros en su construcción, el primero es el número de **nodos ocultos** en la red, el segundo es el **learning rate** el cuál es la velocidad a la que el algoritmo converge a las ponderaciones óptimas de sus pesos y por último el **número de interacciones** el cuál nos permite cuidar el sobreajuste del modelo.
+
+Analizaremos los resultados del modelo de acuerdo a los siguientes rangos de parámetros:
+
+* Nodos ocultos:  
+
+```{r eval=FALSE}
+data2<-model_data[,c(var_boruta,"charges_sqr")]
+
+control<-trainControl(method = "cv",
+                      number=4,savePredictions = "all") 
+
+set.seed(123)
+nnetgrid <-  expand.grid(size=c(4,5,8,10), decay=c(0.1, 0.01, 0.001, .0001),bag=F)
+completo<-data.frame()
+listaiter<-c(10,20,50,100,200,300,500)
+
+for (iter in listaiter)
+{
+  rednnet<- train(charges_sqr~.,
+                  data=data2,
+                  method="avNNet", linout = TRUE, maxit=iter,
+                  trControl=control, repeats=5, tuneGrid=nnetgrid,
+                  trace=F)
+  # Añado la columna del parametro de iteraciones
+  rednnet$results$itera<-iter
+  # Voy incorporando los resultados a completo
+  completo<-rbind(completo,rednnet$results)
+}
+
+completo$MSE  <-(completo$RMSE)^2
+completo<-completo[order(completo$MSE),]
+
+ggplot(completo, aes(x=factor(itera), y=MSE, 
+                     color=factor(decay), pch=factor(size))) +
+  geom_point(position=position_dodge(width=0.5),size=3)
+
+```
+Podemos ver que el error va en función de las iteraciones y el learning rate más que por los nodos, por lo tanto, nos quedaremos con 4 y 5 nodos y profundizaremos entre el factor de aprendizaje .01 y .1 y entre las 150 y 300 iteraciones del modelo.
+
+
+```{r eval=FALSE}
+set.seed(123)
+nnetgrid <-  expand.grid(size=c(4,5),decay=c(0.2, 0.1, 0.05, 0.01),bag=F)
+completo<-data.frame()
+listaiter<-c(150, 200,250,300)
+
+for (iter in listaiter)
+{
+  rednnet<- train(charges_sqr~.,
+                  data=data2,
+                  method="avNNet",linout = TRUE,maxit=iter,
+                  trControl=control, repeats=5, tuneGrid=nnetgrid,
+                  trace=F)
+  # Añado la columna del parametro de iteraciones
+  rednnet$results$itera<-iter
+  # Voy incorporando los resultados a completo
+  completo<-rbind(completo,rednnet$results)
+}
+
+completo$MSE  <-(completo$RMSE)^2
+completo<-completo[order(completo$MSE),]
+
+ggplot(completo, aes(x=factor(itera), y=MSE, color=factor(decay), pch=factor(size))) +
+  geom_point(position=position_dodge(width=0.5), size=3)
+
+```
+
+Podemos ver que la mejor selección es el modelo con 4 nodos, 250 iteraciones y un learning rate de .2
+
+## Resultados
+
+Ahora procederemos a comparar los resultados de cada método previo de regresión lineal con una red sin tuneo de hiperparámetros y otra con su debido tuneo.
+
+
+```{r}
+data2<-model_data[,c(var_boruta, "charges_sqr")]
+medias6<-cruzadaavnnet(data=data2, vardep="charges_sqr", 
+                       listconti=var_boruta, listclass=c(""), 
+                       grupos=4, sinicio=1234, repe=25, 
+                       repeticiones=5, itera=50, size=c(4), 
+                       decay=c(0.2))
+
+medias6$modelo="Red_ct"
+
+medias7<-cruzadaavnnet(data=data2,  vardep="charges_sqr",
+                       listconti=var_boruta, listclass=c(""), 
+                       grupos=4, sinicio=1234, repe=25, 
+                       repeticiones=5, itera=50, size=c(4),
+                       decay=c(0.01))
+
+medias7$modelo="Red_st"
+
+union1<-rbind(medias1,medias2,medias3,medias4,medias5,medias6, medias7)
+
+ggplot(union1, aes(x = modelo, y = error)) +
+  geom_boxplot() +
+  xlab("Modelos") +
+  ylab("MSE") +
+  ggtitle("Resultados Modelos")+
+  theme_economist(base_size = 12, base_family = "sans") +
+  theme(axis.text.x = element_text(size = 8))
+```
+
+Podemos ver que el modelo **Red_ct** el cual hace alusión al modelo de redes neuronales con tuneo en parámetros tiene un mejor resultado que todos los anteriores, incluyendo al mismo modelo de red (variables iguales al modelo tuneado) con diferentes parámetros.
+
+Podemos apreciar que el resultado obtenido a través de una red neuronal con un proceso correcto en selección de variables y tuneo de parámetros ha sido mejor en al menos 80 dólares que el siguiente modelo y más de 200 dólares del peor modelo. El resultado del trabajo es una red neuronal no solamente con el mejor sesgo de todos los modelos anteriores, si no también cuenta con una varianza controlada al poder hacer predicciones precisas y controladas evitando el sobreajuste.
+
+# Conclusiones generales
+
+DD
+
+|     | Red neuronal con tuneo SAS | Red neuronal con tuneo R | 
+|-----|----------------------------|--------------------------|
+| MSE | 352.07506                  | 392.492748               |
+
+Variable Age que en SAS se quedo como continua y en R se dividió en rangos de 10 años y después se transformó en dummyes y se filtraron ciertos rangos por lo cual perdió explicabilidad en el modelo final. 
+
+```{r include=FALSE}
+# Exportación de datos para SAS
+#write.csv2(insurance, file = "my_data.csv", row.names = FALSE)
+```
+
+
